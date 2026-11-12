@@ -1,0 +1,254 @@
+@import "tailwindcss";
+
+/* ==========================================================================
+   Design tokens
+   Semua warna di bawah sudah divalidasi dengan validator palet dataviz:
+   - Rampa choropleth = satu hue, monoton terang->gelap, ujung terang >= 2:1
+     terhadap permukaan (lolos `--ordinal` di light & dark).
+   - Rencana awal YlOrRd DITOLAK validator: kuning->merah itu dua hue
+     (hue spread 53 deg, batas 40 deg). Diganti oranye satu-hue.
+   ========================================================================== */
+
+@theme {
+  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+
+  /* --- permukaan & tinta (light) --- */
+  --color-canvas: #f9f9f7;
+  --color-surface: #fcfcfb;
+  --color-ink: #0b0b0b;
+  --color-ink-2: #52514e;
+  /* ink-3 dipakai untuk teks kecil (label legenda, catatan kaki, satuan).
+     Nilai netral yang lebih terang dari ini gagal WCAG AA: #898781 hanya
+     3.41:1 di atas kanvas dan 3.50:1 di atas permukaan, sedangkan teks
+     berukuran 10-12px tidak boleh mengandalkan keringanan ambang "large text".
+     #6f6d67 memberi 4.91:1 / 5.04:1 - lolos, dan tetap satu tingkat di bawah
+     ink-2 (7.53:1) sehingga hierarki teks tidak hilang. */
+  --color-ink-3: #6f6d67;
+  --color-hairline: #e1e0d9;
+  --color-axis: #c3c2b7;
+  /* Tautan butuh langkah biru tersendiri. --color-sanitasi-2 dipilih sebagai
+     isian peta/grafik (titik scatter, poligon), dan pada 12px ia hanya 3.47:1 -
+     gagal AA. Langkah di bawah dipilih dengan mengukur, bukan disamakan dengan
+     ramp: 4.78:1 di kanvas, 4.91:1 di permukaan, masih sewarna dengan ramp. */
+  --color-link: #2a6fc4;
+
+  /* --- choropleth: prevalensi stunting (oranye, rendah -> tinggi) --- */
+  --color-stunting-1: #f17a56;
+  --color-stunting-2: #da562a;
+  --color-stunting-3: #b14420;
+
+  /* --- choropleth: sanitasi layak (biru, rendah -> tinggi) --- */
+  --color-sanitasi-1: #8db6ee;
+  --color-sanitasi-2: #3c86e5;
+  --color-sanitasi-3: #164f95;
+
+  /* --- status (tetap, tidak di-theme) --- */
+  --color-good: #0ca30c;
+  --color-warning: #fab219;
+  --color-serious: #ec835a;
+  --color-critical: #d03b3b;
+}
+
+/* ---------- dark mode: langkah dipilih ulang, bukan dibalik otomatis ------- */
+@media (prefers-color-scheme: dark) {
+  :root:where(:not([data-theme="light"])) {
+    --color-canvas: #0d0d0d;
+    --color-surface: #1a1a19;
+    --color-ink: #f0efec;
+    --color-ink-2: #c3c2b7;
+    --color-ink-3: #898781;
+    --color-hairline: #2c2c2a;
+    --color-axis: #383835;
+    --color-link: #7ab0f9;
+    /* Status di atas memang tetap - tidak ikut di-theme - tetapi teksnya tetap
+       harus lolos AA di tema gelap: #d03b3b hanya 4.05:1 di kanvas #0d0d0d.
+       Judul galat karena itu memakai langkah yang lebih terang khusus gelap. */
+    --color-critical: #ea6a6a;
+
+    --color-stunting-1: #a63c0c;
+    --color-stunting-2: #d45624;
+    --color-stunting-3: #f28058;
+
+    --color-sanitasi-1: #2462b1;
+    --color-sanitasi-2: #3c86e4;
+    --color-sanitasi-3: #7ab0f9;
+  }
+}
+:root[data-theme="dark"] {
+  --color-canvas: #0d0d0d;
+  --color-surface: #1a1a19;
+  --color-ink: #f0efec;
+  --color-ink-2: #c3c2b7;
+  --color-ink-3: #898781;
+  --color-hairline: #2c2c2a;
+  --color-axis: #383835;
+  --color-link: #7ab0f9;
+  --color-critical: #ea6a6a;
+
+  --color-stunting-1: #a63c0c;
+  --color-stunting-2: #d45624;
+  --color-stunting-3: #f28058;
+
+  --color-sanitasi-1: #2462b1;
+  --color-sanitasi-2: #3c86e4;
+  --color-sanitasi-3: #7ab0f9;
+}
+
+/* ==========================================================================
+   Dasar
+   ========================================================================== */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Angka besar memakai figur proporsional; kolom tabel memakai tabular. */
+.tnum {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Fokus keyboard yang jelas di seluruh kontrol */
+:where(a, button, [tabindex], select, input):focus-visible {
+  outline: 2px solid var(--color-sanitasi-2);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ==========================================================================
+   Leaflet - disesuaikan dengan tema
+   ========================================================================== */
+.leaflet-container {
+  background: var(--color-canvas);
+  font-family: var(--font-sans);
+  /* Peta tidak boleh "mencuri" scroll halaman di ponsel */
+  touch-action: pan-x pan-y;
+}
+
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip {
+  background: var(--color-surface);
+  color: var(--color-ink);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.12);
+}
+
+.leaflet-popup-content-wrapper {
+  border-radius: 10px;
+  border: 1px solid var(--color-hairline);
+}
+
+/* Kontrol zoom.
+   Selektor Leaflet yang mengatur ini - ".leaflet-bar a" - berspesifisitas sama
+   dengan selektor kita, sehingga urutan berkas yang menentukan pemenangnya.
+   Berkas CSS Leaflet dimuat dari dalam modul peta dan jatuh setelah styles.css
+   pada bundel, jadi aturan bawaan yang menang dan tombolnya tetap putih di mode
+   gelap. Karena itu di sini !important dipakai bukan sebagai jalan pintas,
+   melainkan untuk memastikan tema kita yang berlaku berapa pun urutan berkasnya. */
+.leaflet-bar {
+  border: 1px solid var(--color-hairline) !important;
+  border-radius: 10px !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.16) !important;
+  overflow: hidden;
+}
+.leaflet-bar a {
+  background-color: var(--color-surface) !important;
+  color: var(--color-ink) !important;
+  border-bottom-color: var(--color-hairline) !important;
+}
+.leaflet-bar a:hover,
+.leaflet-bar a:focus {
+  background-color: var(--color-canvas) !important;
+}
+.leaflet-bar a:first-child {
+  border-top-left-radius: 9px;
+  border-top-right-radius: 9px;
+}
+.leaflet-bar a:last-child {
+  border-bottom-left-radius: 9px;
+  border-bottom-right-radius: 9px;
+  border-bottom: none;
+}
+/* Tombol nonaktif (zoom mentok) tidak boleh terbaca seperti tombol aktif. */
+.leaflet-bar a.leaflet-disabled {
+  background-color: var(--color-canvas) !important;
+  color: var(--color-axis) !important;
+}
+
+.leaflet-control-attribution {
+  background: color-mix(in srgb, var(--color-surface) 88%, transparent) !important;
+  color: var(--color-ink-3) !important;
+  font-size: 10px;
+}
+.leaflet-control-attribution a {
+  color: var(--color-ink-2) !important;
+}
+
+/* Tooltip hover: nilai memimpin, nama menyusul (hierarchy terbalik dari legenda) */
+.leaflet-tooltip.peta-tip {
+  background: var(--color-surface);
+  color: var(--color-ink);
+  border: 1px solid var(--color-hairline);
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.14);
+  padding: 8px 10px;
+  font-size: 12px;
+  line-height: 1.3;
+}
+.leaflet-tooltip.peta-tip::before {
+  display: none;
+}
+
+/* ==========================================================================
+   Grafik & kartu
+   ========================================================================== */
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-hairline);
+  border-radius: 12px;
+}
+
+/* Chart.js: kanvas mengikuti tinggi wadah; wadah ikut tumbuh agar sumbu
+   tidak terpotong (anti-pattern: nested scroll karena tinggi tetap). */
+.chart-box {
+  position: relative;
+  width: 100%;
+  min-height: 220px;
+}
+
+/* Baris tabel yang tersorot dari peta */
+tr[data-terpilih="true"] {
+  background: color-mix(in srgb, var(--color-sanitasi-2) 12%, transparent);
+}
+
+/* Sapuan hover (bukan warna seleksi) */
+tbody tr:hover {
+  background: color-mix(in srgb, var(--color-ink) 4%, transparent);
+}
+
+/* ==========================================================================
+   Transisi antar-tab
+   ========================================================================== */
+[data-panel][hidden] {
+  display: none;
+}
+
+.tab-aktif {
+  color: var(--color-ink);
+  background: var(--color-surface);
+  border-color: var(--color-hairline);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

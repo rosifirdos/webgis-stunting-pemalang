@@ -1,0 +1,22 @@
+{
+  "name": "webgis-stunting-pemalang",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Web GIS interaktif prevalensi stunting & akses sanitasi layak Kabupaten Pemalang 2024",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "prepare-data": "node scripts/prepare-data.mjs"
+  },
+  "dependencies": {
+    "chart.js": "^4.4.7",
+    "leaflet": "^1.9.4"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.0.0",
+    "tailwindcss": "^4.0.0",
+    "vite": "^6.0.0"
+  }
+}

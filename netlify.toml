@@ -1,0 +1,38 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+# Jaring pengaman: alamat yang tidak cocok dengan berkas mana pun dilayani
+# index.html. Berkas statis tetap dilayani lebih dulu - Netlify hanya memakai
+# aturan ini bila tidak ada berkas yang cocok, jadi /data/* dan /assets/* tidak
+# ikut tertelan.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/data/kecamatan.geojson"
+  [headers.values]
+    Content-Type = "application/geo+json"
+    Cache-Control = "public, max-age=3600, must-revalidate"
+
+[[headers]]
+  for = "/data/kecamatan.csv"
+  [headers.values]
+    Content-Type = "text/csv; charset=utf-8"
+    Cache-Control = "public, max-age=3600, must-revalidate"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
