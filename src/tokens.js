@@ -21,7 +21,7 @@ export function tokenRamp(nama) {
    -------------------------------------------------------------------------- */
 const KUNCI = "sig-tema";
 const pendengar = new Set();
-let mode = "auto";
+let mode = "light";
 
 function terapkan() {
   const root = document.documentElement;
@@ -41,8 +41,9 @@ export function initTema() {
   try {
     const simpan = localStorage.getItem(KUNCI);
     if (simpan === "light" || simpan === "dark" || simpan === "auto") mode = simpan;
+    else mode = "light";
   } catch {
-    /* storage diblokir: pakai 'auto' */
+    mode = "light";
   }
 
   // Ikuti perubahan tema sistem selama pengguna memilih 'auto'.
@@ -83,8 +84,8 @@ export function setMode(baru) {
 }
 
 export function siklusTema() {
-  // auto -> light -> dark -> auto
-  const urutan = ["auto", "light", "dark"];
+  // light -> dark -> auto -> light
+  const urutan = ["light", "dark", "auto"];
   setMode(urutan[(urutan.indexOf(mode) + 1) % urutan.length]);
   return mode;
 }
