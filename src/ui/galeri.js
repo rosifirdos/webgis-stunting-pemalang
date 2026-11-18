@@ -77,20 +77,26 @@ const FOTO = {
     urlBerkas: "https://p3m.poltekkes-malang.ac.id/asset/foto_berita/124.jpg",
   },
   peta: {
-    berkas: "masthead-pengukuran-serentak.webp",
-    judul: "Pengukuran serentak balita",
-    alt: "Bayi berbaring di atas papan ukur di hadapan sejumlah ibu dan balita di dalam ruangan, dengan layar presentasi di latar belakang.",
-    kegiatan: "Program Pengukuran Serentak Balita",
-    lokasi: "Kantor Wali Kota Singkawang, Kalimantan Barat",
-    lokasiSingkat: "Kantor Wali Kota Singkawang, Kalimantan Barat",
-    tanggal: "20 Mei 2025",
-    w: 720,
-    h: 405,
-    pemilik: "Singkawang Media Informasi",
-    urlHalaman:
-      "https://singkawangmedia.com/pengukuran-serentak-balita-upaya-cegah-stunting",
+    // Foto asli masthead-pengukuran-serentak.webp hanya 720×405px — terlalu
+    // kecil untuk container selebar jendela desktop (maks 1400px) sehingga
+    // gambar pecah saat diperbesar object-fit:cover. Diganti dengan foto hero
+    // yang beresolusi 2100×1182px agar tampil tajam di semua ukuran layar.
+    berkas: "hero-pengukuran-panjang-badan.webp",
+    berkasSempit: "hero-pengukuran-panjang-badan-sempit.webp",
+    judul: "Pengukuran panjang badan balita",
+    alt: "Seorang kader berbaju batik memegang kaki bayi yang berbaring di papan ukur panjang badan, didampingi dua kader berhijab di serambi rumah.",
+    kegiatan: "Pengukuran panjang badan balita",
+    lokasi: "Wilayah penerbit: Kabupaten Tangerang, Banten",
+    lokasiSingkat: "Kabupaten Tangerang, Banten",
+    tanggal: null,
+    w: 2100,
+    h: 1182,
+    wSempit: 900,
+    hSempit: 1125,
+    pemilik: "Puskesmas Kelapa Dua, Kabupaten Tangerang",
+    urlHalaman: "https://pkm-kelapadua.tangerangkab.go.id/",
     urlBerkas:
-      "https://singkawangmedia.s3.ap-southeast-1.amazonaws.com/posts/01JVRPG9DF2Q99SKPVN1PR6AWF.jpg",
+      "https://pkm-kelapadua.tangerangkab.go.id/storage/photos/217/67ca86bfb1089.jpeg",
   },
   info: {
     berkas: "masthead-penimbangan-berat.webp",
@@ -311,10 +317,6 @@ export function initFoto() {
   );
   isiKredit("[data-kredit-hero]", FOTO.hero, { terang: true });
 
-  isi(document.querySelector('[data-foto="band"]'), pita(FOTO.band));
-
-  isi(document.querySelector('[data-foto="peta"]'), fotoPenutup(FOTO.peta, { kelasPosisi: "foto-tutup-bawah" }));
-  isiKredit('[data-kredit="peta"]', FOTO.peta, { terang: true });
 
   isi(document.querySelector('[data-foto="info"]'), fotoPenutup(FOTO.info, { kelasPosisi: "foto-tutup-bawah" }));
   isiKredit('[data-kredit="info"]', FOTO.info, { terang: true });

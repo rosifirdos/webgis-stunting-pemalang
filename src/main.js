@@ -21,6 +21,7 @@ import {
 } from "./ui/filters.js";
 import { jalankanUnduh } from "./ui/export.js";
 import { initFoto } from "./ui/galeri.js";
+import { initScrollAnimation } from "./ui/scroll.js";
 
 import { initTema, siklusTema, onTema, isGelap, getMode } from "./tokens.js";
 import { buatPeta, ukuranUlang } from "./map/init.js";
@@ -210,6 +211,7 @@ async function mulai() {
 
     render();
     subscribe(render);
+    initScrollAnimation();
 
     /* --- peristiwa global ---------------------------------------------------- */
     onPetaAktif(() => {
@@ -220,6 +222,10 @@ async function mulai() {
         ukuranUlang();
         fitJikaPerlu();
       });
+      // Pastikan Leaflet menyesuaikan ukuran setelah animasi transisi panel selesai
+      setTimeout(() => {
+        ukuranUlang();
+      }, 300);
     });
 
     window.addEventListener("resize", () => {
