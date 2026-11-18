@@ -157,9 +157,17 @@
           </p>
         </div>
 
-        <!-- KPI: satu hero figure + tiga stat tile -->
-        <div class="grid gap-3 lg:grid-cols-3">
-          <div class="card flex flex-col justify-between p-5 lg:col-span-1">
+        <!-- KPI: satu hero figure + tiga stat tile + foto kegiatan.
+             Di layar lebar angkanya tiga kolom; kolom foto dipatok 300px dan
+             ditaruh di kanan, setinggi kartu angka utama. Di layar sempit
+             semuanya menumpuk dalam urutan sumber: angka utama, foto, lalu
+             tiga kartu statistik. -->
+        <div
+          class="grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)_minmax(0,300px)]"
+        >
+          <div
+            class="card flex flex-col justify-between p-5 lg:col-start-1 lg:row-start-1"
+          >
             <div>
               <p class="text-[13px] text-[var(--color-ink-2)]">
                 Rata-rata prevalensi stunting
@@ -183,7 +191,21 @@
             ></p>
           </div>
 
-          <div class="grid gap-3 sm:grid-cols-3 lg:col-span-2">
+          <!-- Foto kegiatan, urutan kedua di DOM agar di layar sempit ia tampil
+               tepat setelah angka utama — bukan setelah tiga kartu statistik.
+               Di layar lebar kolomnya dipatok eksplisit, jadi urutan sumber
+               tetap sama dengan urutan visual di semua breakpoint (urutan tab
+               tautan kreditnya ikut benar). Diisi oleh initFoto(); figure
+               kosong di sini hanya cadangan: bila JS gagal, yang tampil adalah
+               kotak berbingkai kosong, bukan tata letak yang runtuh. -->
+          <figure
+            class="relative h-56 w-full overflow-hidden rounded-xl border border-[var(--color-hairline)] sm:h-full sm:min-h-[260px] lg:col-start-3 lg:row-start-1"
+            data-foto="hero"
+          ></figure>
+
+          <div
+            class="grid gap-3 sm:grid-cols-3 sm:items-start lg:col-start-2 lg:row-start-1"
+          >
             <div class="card p-4">
               <p class="text-[13px] text-[var(--color-ink-2)]">
                 Rata-rata sanitasi layak
@@ -362,6 +384,15 @@
           </figure>
         </div>
 
+        <!-- Pita foto: jeda visual antara lapisan analitik di atas dan tabel
+             angka yang padat di bawah. Caption menyebut lokasi aslinya, karena
+             foto ini bukan dari Pemalang dan tidak boleh terbaca sebagai
+             dokumentasi kegiatan di kabupaten ini. -->
+        <figure
+          class="relative mt-6 overflow-hidden rounded-xl border border-[var(--color-hairline)]"
+          data-foto="band"
+        ></figure>
+
         <!-- Tabel data -->
         <figure class="card mt-6 overflow-hidden">
           <figcaption class="border-b border-[var(--color-hairline)] p-5">
@@ -454,7 +485,7 @@
         data-panel="peta"
         hidden
       >
-        <div class="mb-5 flex flex-wrap items-end justify-between gap-3">
+        <div class="mb-5 flex flex-wrap items-start justify-between gap-3">
           <div class="max-w-3xl">
             <h2 class="text-xl font-semibold tracking-tight sm:text-2xl">
               Peta Tematik Kecamatan
@@ -464,6 +495,8 @@
               cepat, klik kecamatan untuk detail lengkap.
             </p>
           </div>
+          <!-- Diisi oleh initFoto(). -->
+          <div class="w-full sm:w-80" data-embed="peta"></div>
         </div>
 
         <div class="grid gap-4 lg:grid-cols-[300px_1fr]">
@@ -644,14 +677,18 @@
         data-panel="info"
         hidden
       >
-        <div class="mb-5 max-w-3xl">
-          <h2 class="text-xl font-semibold tracking-tight sm:text-2xl">
-            Metodologi &amp; Sumber Data
-          </h2>
-          <p class="mt-1 text-sm leading-relaxed text-[var(--color-ink-2)]">
-            Bagaimana peta dan angka pada aplikasi ini dihasilkan, serta
-            keterbatasan yang perlu diketahui.
-          </p>
+        <div class="mb-5 flex flex-wrap items-start justify-between gap-3">
+          <div class="max-w-3xl">
+            <h2 class="text-xl font-semibold tracking-tight sm:text-2xl">
+              Metodologi &amp; Sumber Data
+            </h2>
+            <p class="mt-1 text-sm leading-relaxed text-[var(--color-ink-2)]">
+              Bagaimana peta dan angka pada aplikasi ini dihasilkan, serta
+              keterbatasan yang perlu diketahui.
+            </p>
+          </div>
+          <!-- Diisi oleh initFoto(). -->
+          <div class="w-full sm:w-80" data-embed="info"></div>
         </div>
 
         <div class="grid gap-4 lg:grid-cols-3">
@@ -866,6 +903,23 @@
                   </dd>
                 </div>
               </dl>
+            </div>
+
+            <div class="card p-5">
+              <h3 class="text-[15px] font-semibold">Sumber foto</h3>
+              <p class="mt-1.5 text-xs leading-relaxed text-[var(--color-ink-3)]">
+                Empat foto yang tersebar di halaman ini
+                <span class="font-medium text-[var(--color-ink-2)]"
+                  >bukan dokumentasi Kabupaten Pemalang</span
+                >. Kegiatan aslinya berlangsung di Kota Singkawang, Kabupaten
+                Malang, dan Kabupaten Tangerang. Foto dipakai sebagai ilustrasi
+                jenis kegiatan yang menghasilkan angka semacam ini — pengukuran
+                dan penimbangan balita — bukan sebagai bukti keadaan di
+                Pemalang. Lokasi asli tercantum pada tiap gambar, dan tidak ada
+                keterangan yang disembunyikan di kaki halaman. Hak cipta tetap
+                pada masing-masing pemilik.
+              </p>
+              <ul class="mt-4 flex flex-col gap-3" data-kredit-foto></ul>
             </div>
 
             <div class="card p-5">

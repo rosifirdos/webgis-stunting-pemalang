@@ -20,6 +20,7 @@ import {
   segarkanTabelGrafik,
 } from "./ui/filters.js";
 import { jalankanUnduh } from "./ui/export.js";
+import { initFoto } from "./ui/galeri.js";
 
 import { initTema, siklusTema, onTema, isGelap, getMode } from "./tokens.js";
 import { buatPeta, ukuranUlang } from "./map/init.js";
@@ -107,6 +108,10 @@ async function mulai() {
     initTema();
     initTombolTema();
     initTabs();
+    // Foto mengisi slot tata letak yang sudah ada di HTML dan tidak
+    // bergantung pada data, jadi dipasang sebelum GeoJSON selesai dimuat
+    // supaya unduhan gambarnya berjalan bersamaan, bukan berurutan.
+    initFoto();
 
     const { geojson, rows } = await muatData();
     document.getElementById("pemuat")?.remove();

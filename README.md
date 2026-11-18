@@ -35,9 +35,11 @@ dependensi tambahan.
 
 ```
 webgis-stunting-pemalang/
-├─ public/data/
-│  ├─ kecamatan.geojson          14 poligon + atribut (398 KB, 40 KB brotli)
-│  └─ kecamatan.csv              tabel atribut untuk diunduh ulang
+├─ public/
+│  ├─ data/
+│  │  ├─ kecamatan.geojson        14 poligon + atribut (398 KB, 40 KB brotli)
+│  │  └─ kecamatan.csv            tabel atribut untuk diunduh ulang
+│  └─ media/                      5 berkas foto (WebP), total 258 KB
 ├─ src/
 │  ├─ main.js                    bootstrap + urutan inisialisasi
 │  ├─ styles.css                 @import "tailwindcss" + token @theme static
@@ -61,6 +63,7 @@ webgis-stunting-pemalang/
 │  │  ├─ kpi.js                  kartu ringkasan
 │  │  ├─ filters.js              filter kelas kerentanan
 │  │  ├─ table.js                tabel: cari, urut, filter
+│  │  ├─ galeri.js                foto sebagai bagian tata letak + kreditnya
 │  │  └─ export.js               unduh GeoJSON + CSV
 │  └─ state/store.js             state tunggal (layer aktif, kecamatan terpilih)
 ├─ scripts/prepare-data.mjs      SHP/DBF → GeoJSON + CSV, tanpa GDAL
@@ -88,6 +91,84 @@ instance peta kedua tanpa refactor.
 sekadar kredit. Atribusi ditulis di dalam `BASEMAP[...].attr` pada
 `src/map/init.js` dan dirender oleh kontrol atribusi Leaflet. Jangan
 menonaktifkan `attributionControl`.
+
+---
+
+## Sumber foto
+
+Empat foto dipakai sebagai **elemen visual halaman**, bukan galeri tersendiri.
+Masing-masing mengisi slot tata letak yang sudah ada, dan slot itu yang
+menentukan ukuran serta rasionya:
+
+| Slot | Berkas | Peran | Ukuran |
+| :--- | :--- | :--- | :--- |
+| Hero Home | `pemeriksaan-tumbuh-kembang.webp` | Kolom kanan di samping angka ringkasan; di ponsel muncul tepat setelah angka utama | 840×630 (4:3) |
+| Pita sebelum tabel | `pita-lebar.webp` / `pita-sempit.webp` | Jeda visual antara grafik dan tabel padat | 1600×360 (4,4:1) / 760×420 (1,8:1) |
+| Kepala panel Peta | `pengukuran-serentak-balita.webp` | Kanan judul panel | 720×405 (16:9) |
+| Kepala panel Info | `penimbangan-berat-balita.webp` | Kanan judul panel | 1196×672 (16:9) |
+
+Berkasnya WebP, bukan JPEG: halaman ini sudah mengasumsikan browser modern
+(`color-mix`, `has-[:checked]`, `aspect-ratio`), dan pada kualitas setara WebP
+memangkas sekitar sepertiga bobot transfer. Kelima berkas berjumlah **258 KB**;
+yang benar-benar terunduh per kunjungan lebih sedikit — 215 KB di layar lebar
+atau 194 KB di ponsel — karena hanya satu potongan pita yang diambil browser.
+
+**Pita memakai dua berkas untuk satu slot.** Satu potongan tidak bisa melayani
+kedua ujung: rasio 4,4:1 yang pas di layar lebar menjadi pita setipis ~80px di
+ponsel, dan sebaliknya potongan 1,8:1 memotong subjeknya di layar lebar. Karena
+`object-cover` tidak bisa menghindari subjek di dua rasio sekaligus, pemotongan
+dilakukan sekali di berkas dengan bias vertikal yang diperiksa, lalu browser
+memilih satu lewat `<picture>` + `<source media="(max-width: 640px)">`. Hanya
+berkas yang terpilih yang diunduh; `img.currentSrc` sudah diverifikasi berisi
+`pita-sempit.webp` di 390px dan `pita-lebar.webp` di 1440px.
+
+Keterangan pita diletakkan **di bawah** gambar, bukan ditumpuk di atasnya —
+pada pita yang tingginya hanya ~300px, lapisan keterangan di dalam bingkai akan
+menutupi bayi yang menjadi subjek foto.
+
+| Berkas | Kegiatan | Lokasi asli | Pemilik |
+| :--- | :--- | :--- | :--- |
+| `pemeriksaan-tumbuh-kembang.webp` | Pemeriksaan tumbuh kembang balita (18 Sep 2025) | Desa Klepu, Kabupaten Malang, Jawa Timur | P3M Poltekkes Kemenkes Malang |
+| `pita-lebar.webp` (lebar) + `pita-sempit.webp` (≤640px) | Pengukuran panjang badan balita | Wilayah penerbit: Kabupaten Tangerang, Banten | Puskesmas Kelapa Dua, Kabupaten Tangerang |
+| `pengukuran-serentak-balita.webp` | Pengukuran serentak balita (20 Mei 2025) | Kantor Wali Kota Singkawang, Kalimantan Barat | Singkawang Media Informasi |
+| `penimbangan-berat-balita.webp` | Penimbangan berat badan balita di posyandu | Tidak disebutkan pada sumber | KG Newsroom |
+
+**Foto-foto ini bukan dokumentasi Kabupaten Pemalang.** Kegiatan aslinya
+berlangsung di Kota Singkawang, Kabupaten Malang, dan Kabupaten Tangerang.
+Foto dipakai sebagai ilustrasi jenis kegiatan yang menghasilkan angka semacam
+ini, bukan sebagai bukti keadaan di Pemalang. Menampilkan foto daerah lain
+seolah-olah Pemalang akan menyesatkan, jadi lokasi asli dicetak pada setiap
+gambar — di dalam bingkainya, bukan disembunyikan di kredit kaki.
+
+Dua baris perlu dicatat sebagai **mata rantai terlemah** atribusinya:
+`kgnewsroom.com` adalah portal yang hanya bisa dibuka setelah masuk, sehingga
+pemilik sah dan artikel aslinya tidak dapat dipastikan — kredit hanya menyebut
+institusi penerbit. Untuk foto Puskesmas Kelapa Dua, penerbitnya terverifikasi
+tetapi artikel tempat foto itu tampil tidak ditemukan, jadi tidak ada lokasi
+kegiatan maupun tanggal yang bisa dicantumkan. Bila foto-foto ini hendak
+dipakai di luar lingkup tugas akademik, izin perlu diminta langsung ke kedua
+institusi tersebut.
+
+Ketentuan yang dipegang:
+
+- **Berkas di-host sendiri**, disalin ke `public/media/`, tidak di-hotlink ke
+  server sumber. Hotlink membebani server lembaga lain setiap kali halaman
+  dibuka, dan gambarnya akan mati begitu berkas aslinya dipindahkan.
+- **Kredit menautkan halaman artikel aslinya**, bukan hanya menyebut nama.
+- **Daftar foto ada di satu tempat**: objek `FOTO` pada `src/ui/galeri.js`.
+  Satu entri mengisi slot gambarnya sekaligus baris kredit di Info. Menambah
+  atau menghapus foto cukup di objek itu; tidak ada kredit yang bisa
+  tertinggal.
+- **Hak cipta tetap pada pemiliknya.** Keempatnya karya lembaga pemerintah atau
+  media; pemakaian di sini untuk keperluan tugas akademik non-komersial dengan
+  atribusi penuh. Untuk pemakaian publik yang lebih luas, minta izin ke pemilik
+  masing-masing.
+- **Atribut `width`/`height` ditulis eksplisit** agar tata letak tidak bergeser
+  saat gambar selesai dimuat (CLS). Semua gambar ditunda (`loading="lazy"`)
+  kecuali yang di hero, yang tampil di layar pertama.
+- **Keterangan di atas foto memakai latar hitam 0,70, bukan gradien.** Teks
+  putih 11–13px harus lolos AA di atas piksel apa pun, dan gradien yang
+  memudar ke nol menjamin ada bagian teks yang gagal.
 
 ---
 
