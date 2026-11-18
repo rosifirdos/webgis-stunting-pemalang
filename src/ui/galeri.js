@@ -1,11 +1,11 @@
 /**
- * Foto kegiatan sebagai bagian tata letak.
+ * Foto sebagai bagian komposisi halaman.
  *
- * Empat foto dipakai sebagai elemen visual halaman — bukan galeri tersendiri:
- * satu di hero Home, satu pita lebar sebelum tabel, satu di kepala kolom info
- * peta, dan satu di kepala halaman Info. Semuanya mengisi slot yang sudah ada
- * di index.html lewat atribut data-foto / data-embed, jadi urutan dan
- * penempatannya tetap urusan tata letak, bukan urusan modul ini.
+ * Empat foto masuk ke komposisi, bukan ke galeri tersendiri: satu mengisi
+ * latar hero Home, satu menjadi pita selebar jendela sebelum tabel, dan dua
+ * menjadi latar judul (masthead) halaman Peta dan Info. Slotnya sudah ada di
+ * index.html lewat atribut data-foto / data-kredit; modul ini hanya mengisi,
+ * tidak menentukan posisi. Tata letak tetap urusan HTML.
  *
  * Satu daftar di bawah ini mengisi seluruh slot sekaligus daftar kredit di
  * halaman Info. Ditulis sekali agar kredit tidak bisa lepas dari fotonya:
@@ -15,9 +15,10 @@
  *
  * 1. Foto-foto ini BUKAN dokumentasi Kabupaten Pemalang. Kegiatan aslinya
  *    berlangsung di Kota Singkawang, Kabupaten Malang, dan Kabupaten
- *    Tangerang. Setiap gambar karena itu menyebut lokasi aslinya tepat di
- *    bawah atau di atas gambarnya, supaya tidak terbaca sebagai kondisi di
- *    Pemalang.
+ *    Tangerang. Setiap slot karena itu tetap membawa satu baris kredit berisi
+ *    lokasi aslinya — di dasar hero, di dasar masthead, dan di bawah pita.
+ *    Foto selebar jendela paling mudah disalahartikan sebagai potret daerah
+ *    ini, jadi kreditnya tidak boleh pindah ke kaki halaman.
  * 2. Atribusi memuat tautan ke pemilik berkas. Itu syarat yang dinyatakan
  *    sumbernya, bukan sekadar kredit sopan.
  * 3. Berkasnya disalin ke public/media, tidak di-hotlink ke server sumber.
@@ -32,47 +33,56 @@ const BASE = import.meta.env.BASE_URL;
 
 const FOTO = {
   hero: {
-    berkas: "pemeriksaan-tumbuh-kembang.webp",
-    judul: "Pemeriksaan tumbuh kembang balita",
-    alt: "Petugas kesehatan bersarung tangan memeriksa tumbuh kembang seorang anak di meja berlapis kain batik, didampingi ibunya dan sejumlah warga.",
-    kegiatan: "Pemeriksaan tumbuh kembang dan antropometri balita",
-    lokasi: "Desa Klepu, Kabupaten Malang, Jawa Timur",
-    tanggal: "18 September 2025",
-    w: 840,
-    h: 630,
-    pemilik: "P3M Poltekkes Kemenkes Malang",
-    urlHalaman:
-      "https://p3m.poltekkes-malang.ac.id/berita/detail/edukasi-pemantauan-tumbuh-kembang-balita-melalui-pengabdian-masyarakat-di-desa-klepu",
-    urlBerkas: "https://p3m.poltekkes-malang.ac.id/asset/foto_berita/124.jpg",
-  },
-  band: {
-    // Dua potongan untuk satu slot. Rasio yang pas untuk layar lebar (4,4:1)
-    // akan jadi pita setipis 80px di ponsel, dan sebaliknya potongan 1,8:1
-    // memotong subjeknya di layar lebar. Jadi pemotongannya dilakukan di
-    // berkas — sekali, dengan bias yang sudah diperiksa — bukan lewat
-    // object-cover yang tidak bisa menghindari subjek di kedua ujung rasio.
-    berkas: "pita-lebar.webp",
-    berkasSempit: "pita-sempit.webp",
+    // Sumbernya satu-satunya yang beresolusi cukup untuk selebar jendela.
+    // Dua potongan untuk dua ujung layar: bingkai 16:9 dipakai apa adanya di
+    // desktop, sedangkan di ponsel rasio hero jauh lebih tegak sehingga
+    // potongan 4:5 mempertahankan ibu, bayi, dan papan ukurnya sekaligus.
+    berkas: "hero-pengukuran-panjang-badan.webp",
+    berkasSempit: "hero-pengukuran-panjang-badan-sempit.webp",
     judul: "Pengukuran panjang badan balita",
-    alt: "Bayi berbaring di atas papan ukur panjang badan di serambi rumah, sambil didampingi tiga kader kesehatan.",
-    kegiatan: "Pelayanan posyandu",
+    alt: "Seorang kader berbaju batik memegang kaki bayi yang berbaring di papan ukur panjang badan, didampingi dua kader berhijab di serambi rumah.",
+    kegiatan: "Pengukuran panjang badan balita",
     lokasi: "Wilayah penerbit: Kabupaten Tangerang, Banten",
+    lokasiSingkat: "Kabupaten Tangerang, Banten",
     tanggal: null,
-    w: 1600,
-    h: 360,
-    wSempit: 760,
-    hSempit: 420,
+    w: 2100,
+    h: 1182,
+    wSempit: 900,
+    hSempit: 1125,
     pemilik: "Puskesmas Kelapa Dua, Kabupaten Tangerang",
     urlHalaman: "https://pkm-kelapadua.tangerangkab.go.id/",
     urlBerkas:
       "https://pkm-kelapadua.tangerangkab.go.id/storage/photos/217/67ca86bfb1089.jpeg",
   },
+  band: {
+    // Sumber hanya 1000px; pita dibuat 2,6:1 supaya tinggi tampilnya wajar
+    // (sekitar 550px di layar 1440) dan pemotongannya jatuh di luar subjek.
+    // Potongan 1,6:1 untuk ponsel, karena pita 2,6:1 di layar 390px hanya
+    // setinggi ~150px dan wajahnya hilang.
+    berkas: "pita-lebar.webp",
+    berkasSempit: "pita-sempit.webp",
+    judul: "Pemeriksaan tumbuh kembang balita",
+    alt: "Petugas bersarung tangan memeriksa tangan seorang anak di meja berlapis kain batik, didampingi ibunya dan sejumlah warga.",
+    kegiatan: "Pemeriksaan tumbuh kembang dan antropometri balita",
+    lokasi: "Desa Klepu, Kabupaten Malang, Jawa Timur",
+    lokasiSingkat: "Desa Klepu, Kabupaten Malang, Jawa Timur",
+    tanggal: "18 September 2025",
+    w: 1400,
+    h: 539,
+    wSempit: 1000,
+    hSempit: 625,
+    pemilik: "P3M Poltekkes Kemenkes Malang",
+    urlHalaman:
+      "https://p3m.poltekkes-malang.ac.id/berita/detail/edukasi-pemantauan-tumbuh-kembang-balita-melalui-pengabdian-masyarakat-di-desa-klepu",
+    urlBerkas: "https://p3m.poltekkes-malang.ac.id/asset/foto_berita/124.jpg",
+  },
   peta: {
-    berkas: "pengukuran-serentak-balita.webp",
+    berkas: "masthead-pengukuran-serentak.webp",
     judul: "Pengukuran serentak balita",
-    alt: "Bayi berbaring di atas timbangan di hadapan sejumlah ibu dan balita di dalam ruangan, dengan layar presentasi di latar belakang.",
+    alt: "Bayi berbaring di atas papan ukur di hadapan sejumlah ibu dan balita di dalam ruangan, dengan layar presentasi di latar belakang.",
     kegiatan: "Program Pengukuran Serentak Balita",
     lokasi: "Kantor Wali Kota Singkawang, Kalimantan Barat",
+    lokasiSingkat: "Kantor Wali Kota Singkawang, Kalimantan Barat",
     tanggal: "20 Mei 2025",
     w: 720,
     h: 405,
@@ -83,14 +93,15 @@ const FOTO = {
       "https://singkawangmedia.s3.ap-southeast-1.amazonaws.com/posts/01JVRPG9DF2Q99SKPVN1PR6AWF.jpg",
   },
   info: {
-    berkas: "penimbangan-berat-balita.webp",
+    berkas: "masthead-penimbangan-berat.webp",
     judul: "Penimbangan berat badan balita",
     alt: "Balita berdiri di atas timbangan bayi sambil dipegang dua kader berhijab dan bermasker di tengah keramaian posyandu.",
     kegiatan: "Posyandu",
     lokasi: "Lokasi kegiatan tidak disebutkan pada sumber",
+    lokasiSingkat: "lokasi kegiatan tidak disebutkan pada sumber",
     tanggal: null,
-    w: 1196,
-    h: 672,
+    w: 1197,
+    h: 673,
     pemilik: "KG Newsroom",
     urlHalaman: "https://www.kgnewsroom.com/",
     urlBerkas:
@@ -119,123 +130,133 @@ function tautan(kelas, teks, href) {
   return a;
 }
 
-function gambar(f, kelas, prioritas) {
+/**
+ * Gambar dengan dimensi intrinsic eksplisit, agar tata letak tidak bergeser
+ * saat gambar selesai dimuat (CLS). Foto yang punya potongan sempit dibungkus
+ * <picture>: browser memilih satu sumber saja saat memuat, yang tidak terpilih
+ * tidak diunduh.
+ */
+function gambar(f, kelas, { prioritas = false } = {}) {
   const img = el("img", kelas);
   img.src = `${BASE}media/${f.berkas}`;
   img.alt = f.alt;
   img.decoding = "async";
-  if (!prioritas) img.loading = "lazy";
-  // Dimensi intrinsic ditulis eksplisit agar tata letak tidak bergeser saat
-  // gambar selesai dimuat (menghindari Cumulative Layout Shift).
   img.width = f.w;
   img.height = f.h;
 
-  // Foto yang punya potongan sempit dibungkus <picture>. Browser memilih
-  // satu sumber saja saat memuat — yang tidak terpilih tidak diunduh.
+  if (prioritas) {
+    // Foto hero adalah elemen terbesar di layar pertama; menundanya justru
+    // menunda LCP.
+    img.fetchPriority = "high";
+  } else {
+    img.loading = "lazy";
+  }
+
   if (f.berkasSempit) {
-    const pic = el("picture");
+    const pic = el("picture", "block h-full w-full");
     const sumber = el("source");
     sumber.media = "(max-width: 640px)";
     sumber.srcset = `${BASE}media/${f.berkasSempit}`;
-    sumber.width = f.wSempit;
-    sumber.height = f.hSempit;
     pic.append(sumber, img);
     return pic;
   }
   return img;
 }
 
+/* --- Teks kredit --------------------------------------------------------- */
+
 /**
- * Keterangan yang menumpuk di atas gambar.
+ * Satu baris kredit yang menempel pada gambarnya.
  *
- * Latar hitamnya pekat dan tidak memakai gradien yang memudar ke nol: teks
- * putih 11-13px butuh kontras AA di atas piksel apa pun, dan foto ini terang
- * di beberapa bagian. Pada kepekatan 0,70 lapisan itu menyisakan kontras
- * sekitar 8:1 bahkan bila piksel di bawahnya benar-benar putih.
+ * Lokasi asli wajib ada di baris ini, bukan hanya di daftar Info: foto selebar
+ * jendela mudah dibaca sebagai potret Kabupaten Pemalang, dan kredit yang
+ * terpisah satu halaman tidak menolong pembaca yang tidak pernah membukanya.
+ *
+ * `terang` untuk teks di atas foto (putih), bukan token tautan situs — token
+ * itu dirancang untuk permukaan terang/gelap, bukan untuk ditumpuk di atas
+ * piksel foto.
  */
-function keteranganAtas(f) {
-  const cap = el(
-    "figcaption",
-    "absolute inset-x-0 bottom-0 bg-black/70 px-2.5 py-2 text-white"
+function kredit(f, { terang = false, judul = false, kelas = "" } = {}) {
+  const p = el("p", kelas);
+  if (judul) {
+    p.append(el("span", "font-medium", f.judul));
+    p.append(document.createTextNode(" — "));
+  }
+  p.append(document.createTextNode("Foto: "));
+  p.append(
+    tautan(
+      terang
+        ? "underline decoration-white/40 underline-offset-2 hover:decoration-white"
+        : KELAS_TAUTAN,
+      f.pemilik,
+      f.urlHalaman
+    )
   );
-  cap.append(el("p", "text-[12px] font-medium leading-snug", f.judul));
-  cap.append(
-    el("p", "mt-0.5 text-[11px] leading-snug text-white/85", f.lokasi)
+  p.append(document.createTextNode(` · ${f.lokasiSingkat}. `));
+  p.append(
+    el(
+      "span",
+      terang ? "text-white/60" : "text-[var(--color-ink-3)]",
+      "Ilustrasi kegiatan, bukan dokumentasi Kabupaten Pemalang."
+    )
   );
-  const kredit = el("p", "mt-0.5 text-[11px] leading-snug text-white/85");
-  kredit.append(document.createTextNode("Foto: "));
-  // Tautan di atas latar hitam memakai putih bergaris bawah, bukan biru:
-  // token tautan situs ini dirancang untuk permukaan terang/gelap, bukan
-  // untuk ditumpuk di atas foto.
-  kredit.append(
-    tautan("underline underline-offset-2 hover:text-white", f.pemilik, f.urlHalaman)
-  );
-  cap.append(kredit);
-  return cap;
+  return p;
 }
 
-function bingkai(f, kelasBingkai, kelasGambar, prioritas, keterangan) {
-  const fig = el("figure", kelasBingkai);
-  fig.append(gambar(f, kelasGambar, prioritas));
-  fig.append(keterangan ? keterangan(f) : keteranganAtas(f));
-  return fig;
+/** Mengisi satu elemen kredit yang sudah ada di HTML (bukan membuat <p> baru,
+ *  karena slotnya sendiri sudah berupa paragraf). */
+function isiKredit(selektor, f, opsi) {
+  const tempat = document.querySelector(selektor);
+  if (tempat) tempat.replaceChildren(...kredit(f, opsi).childNodes);
 }
+
+/* --- Slot: latar hero / masthead ----------------------------------------- */
+
+/** Gambar penutup penuh. Wadahnya absolute inset-0, jadi gambar mengisi
+ *  seluruh bidang tanpa ikut menentukan tinggi — tinggi hero datang dari
+ *  class min-h di HTML, sehingga tidak ada lompatan saat gambar dimuat.
+ *
+ *  `kelasPosisi` memilih bagian foto yang dipertahankan saat rasio wadahnya
+ *  jauh lebih lebar daripada berkasnya. Hero diisi potret ibu-bayi yang
+ *  subjeknya di tengah-bawah, jadi cukup pembawaan .foto-tutup (42%);
+ *  masthead hanya setinggi 190-230px dan harus menyisakan bayi di papan ukur,
+ *  bukan atap dan langit-langit, jadi memakai .foto-tutup-bawah (70%). */
+function fotoPenutup(f, { prioritas = false, kelasPosisi = "" } = {}) {
+  return gambar(f, `foto-tutup${kelasPosisi ? ` ${kelasPosisi}` : ""}`, { prioritas });
+}
+
+/* --- Slot: pita selebar jendela ------------------------------------------ */
 
 /**
- * Keterangan di bawah gambar, untuk slot yang gambarnya tidak dipotong paksa.
- * Dipakai pita lebar: keterangan bertumpuk di atas foto akan menutupi subjek
- * pada pita yang tinggi tampilnya hanya 288px.
+ * Pita foto dengan kredit di bawahnya, bukan ditumpuk di atas gambar.
+ * Kredit bertumpuk akan menutupi subjek pada pita yang tingginya hanya
+ * beberapa ratus piksel.
  */
-function keteranganBawah(f) {
+function pita(f) {
+  const fig = el("figure", "relative w-full");
+  fig.append(
+    // max-height menjaga pita tetap pita di layar sangat lebar; pada 2560px
+    // rasio 2,6:1 akan menghasilkan gambar setinggi 980px.
+    gambar(f, "block h-auto max-h-[560px] w-full object-cover")
+  );
+
   const cap = el(
     "figcaption",
-    "flex flex-wrap items-baseline gap-x-2 gap-y-0.5 border-t border-[var(--color-hairline)] bg-[var(--color-surface)] px-3 py-2"
+    "border-y border-[var(--color-hairline)] bg-[var(--color-surface)]"
   );
-  cap.append(el("p", "text-[12px] font-medium leading-snug", f.judul));
-  cap.append(el("p", "text-[11px] leading-snug text-[var(--color-ink-3)]", f.lokasi));
-  const kredit = el("p", "text-[11px] leading-snug text-[var(--color-ink-3)]");
-  kredit.append(document.createTextNode("Foto: "));
-  kredit.append(tautan(KELAS_TAUTAN, f.pemilik, f.urlHalaman));
-  cap.append(kredit);
-  return cap;
-}
-
-/* --- Kepala panel: gambar dengan keterangan di bawahnya ------------------- */
-
-function kartuKepala(f) {
-  const kotak = el("div", "flex flex-col");
-  kotak.append(
-    el(
-      "p",
-      "mb-1 text-xs font-semibold uppercase tracking-wide text-[var(--color-ink-3)]",
-      "Foto kegiatan"
-    )
-  );
-
-  const bingkaiGambar = el(
+  const isi = el(
     "div",
-    "overflow-hidden rounded-lg border border-[var(--color-hairline)]"
+    "mx-auto w-full max-w-[1400px] px-4 py-2.5 sm:px-6"
   );
-  bingkaiGambar.append(gambar(f, "aspect-[16/9] w-full object-cover"));
-  kotak.append(bingkaiGambar);
-
-  kotak.append(
-    el(
-      "p",
-      "mt-2 text-[12px] leading-snug text-[var(--color-ink-2)]",
-      f.judul
-    )
+  isi.append(
+    kredit(f, {
+      judul: true,
+      kelas: "text-[12px] leading-snug text-[var(--color-ink-2)]",
+    })
   );
-  kotak.append(
-    el("p", "mt-0.5 text-[11px] leading-snug text-[var(--color-ink-3)]", f.lokasi)
-  );
-
-  const kredit = el("p", "mt-1 text-[11px] leading-snug text-[var(--color-ink-3)]");
-  kredit.append(document.createTextNode("Foto: "));
-  kredit.append(tautan(KELAS_TAUTAN, f.pemilik, f.urlHalaman));
-  kotak.append(kredit);
-
-  return kotak;
+  cap.append(isi);
+  fig.append(cap);
+  return fig;
 }
 
 /* --- Daftar kredit di halaman Info --------------------------------------- */
@@ -271,10 +292,10 @@ function barisKredit(f, peran) {
 }
 
 const PERAN = {
-  hero: "hero halaman Home",
+  hero: "latar hero halaman Home",
   band: "pita sebelum tabel data",
-  peta: "kepala kolom info peta",
-  info: "kepala halaman Info",
+  peta: "masthead halaman Peta",
+  info: "masthead halaman Info",
 };
 
 /** Mengganti wadah cadangan di HTML dengan gambar sebenarnya. */
@@ -286,36 +307,17 @@ function isi(tempat, simpul) {
 export function initFoto() {
   isi(
     document.querySelector('[data-foto="hero"]'),
-    bingkai(
-      FOTO.hero,
-      "relative h-56 w-full overflow-hidden rounded-xl border border-[var(--color-hairline)] sm:h-full sm:min-h-[260px]",
-      "absolute inset-0 h-full w-full object-cover",
-      true // gambar hero tampil di layar pertama, jangan ditunda
-    )
+    fotoPenutup(FOTO.hero, { prioritas: true })
   );
+  isiKredit("[data-kredit-hero]", FOTO.hero, { terang: true });
 
-  isi(
-    document.querySelector('[data-foto="band"]'),
-    bingkai(
-      FOTO.band,
-      "overflow-hidden rounded-xl border border-[var(--color-hairline)]",
-      // Berkasnya sudah dipotong pada rasio slotnya, jadi tinggi mengikuti
-      // rasio gambar dan tidak ada pemotongan ulang lewat CSS.
-      "block h-auto w-full",
-      false,
-      keteranganBawah
-    )
-  );
+  isi(document.querySelector('[data-foto="band"]'), pita(FOTO.band));
 
-  isi(
-    document.querySelector('[data-embed="peta"]'),
-    kartuKepala(FOTO.peta)
-  );
+  isi(document.querySelector('[data-foto="peta"]'), fotoPenutup(FOTO.peta, { kelasPosisi: "foto-tutup-bawah" }));
+  isiKredit('[data-kredit="peta"]', FOTO.peta, { terang: true });
 
-  isi(
-    document.querySelector('[data-embed="info"]'),
-    kartuKepala(FOTO.info)
-  );
+  isi(document.querySelector('[data-foto="info"]'), fotoPenutup(FOTO.info, { kelasPosisi: "foto-tutup-bawah" }));
+  isiKredit('[data-kredit="info"]', FOTO.info, { terang: true });
 
   const daftar = document.querySelector("[data-kredit-foto]");
   if (daftar) {

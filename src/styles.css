@@ -138,6 +138,67 @@ body {
 }
 
 /* ==========================================================================
+   Foto sebagai bagian komposisi
+   ========================================================================== */
+
+/**
+ * Tirai peredup di atas foto hero dan masthead.
+ *
+ * Foto-foto ini terang di bagian tengah (papan ukur putih, seragam putih,
+ * dinding siang hari). Tanpa peredup, teks putih di atas piksel terang gagal
+ * AA — bukan "kurang kontras", melainkan tidak terbaca sama sekali.
+ *
+ * Keempat berhenti di bawah bukan nilai rasa, melainkan hasil pengukuran:
+ * tiap berkas foto dikompositkan dengan gradien ini, lalu kontras setiap
+ * alpha teks yang dipakai (0,65 / 0,70 / 0,75 / 0,80) dihitung terhadap
+ * piksel TERANG terburuk pada pita tempat teks benar-benar berada. Ambang
+ * terendah yang dihasilkan 4,73:1 (halaman Info) — di atas 4,5:1, dan itu
+ * sudah termasuk piksel putih papan ukur yang paling menyilaukan. Versi awal
+ * (0,35/0,72/0,88) hanya mencapai 3,8:1 di hero; gradien yang mulai gelap
+ * terlalu rendah gagal justru di bagian atas, tempat nomor besar dan judul
+ * mulai.
+ *
+ * Bagian atas sengaja tidak ikut pekat (0,44) supaya foto masih terbaca
+ * sebagai foto, bukan sebagai bidang gelap. Lapisannya gelap kecokelatan,
+ * bukan hitam: latar #16110d membuat sambungan ke area foto tidak tampak
+ * sebagai pita hitam, dan warna hangat itu menyatu dengan foto kegiatan
+ * dalam ruangan.
+ */
+.hero-scrim {
+  background: linear-gradient(
+    to bottom,
+    rgb(22 17 13 / 0.44) 0%,
+    rgb(22 17 13 / 0.70) 28%,
+    rgb(22 17 13 / 0.85) 60%,
+    rgb(22 17 13 / 0.90) 85%,
+    rgb(22 17 13 / 0.93) 100%
+  );
+}
+
+/* Foto penutup penuh untuk hero dan masthead. `object-position` diatur di
+   tengah atas: pada potret 4:3 yang direntangkan ke rasio sangat lebar, subjek
+   (ibu, anak, papan ukur) berada di bagian tengah-bawah, jadi memotong dari
+   tengah membuat mereka tetap terlihat di ponsel maupun desktop. */
+.foto-tutup {
+  display: block;
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+  object-position: 50% 42%;
+}
+
+/* Masthead Peta dan Info hanya 190-230px tingginya, sedangkan berkasnya 16:9.
+   Pada posisi 42% yang terlihat masih atap dan langit-langit; 70% baru
+   memuat bayi di papan ukur dan wajah balita yang menjadi subjeknya —
+   diperiksa dengan mensimulasikan crop object-cover di 1440px dan 390px.
+   Ditulis sebagai kelas terpisah, bukan utility Tailwind: aturan .foto-tutup
+   di atas tidak berlapis (@layer), sehingga ia selalu mengalahkan utility
+   apa pun yang ditulis di HTML. */
+.foto-tutup-bawah {
+  object-position: 50% 70%;
+}
+
+/* ==========================================================================
    Leaflet - disesuaikan dengan tema
    ========================================================================== */
 .leaflet-container {
