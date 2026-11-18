@@ -40,7 +40,7 @@ webgis-stunting-pemalang/
 │  └─ kecamatan.csv              tabel atribut untuk diunduh ulang
 ├─ src/
 │  ├─ main.js                    bootstrap + urutan inisialisasi
-│  ├─ styles.css                 @import "tailwindcss" + token @theme
+│  ├─ styles.css                 @import "tailwindcss" + token @theme static
 │  ├─ tokens.js                  baca token warna dari CSS, simpan preferensi tema
 │  ├─ data/
 │  │  ├─ load.js                 fetch + cache GeoJSON
@@ -117,6 +117,19 @@ terburuk justru terlihat aman. Di web, stunting memakai ramp **oranye satu hue**
 (rendah → tinggi) dan sanitasi memakai **biru**. Perbedaan ini dicatat di
 halaman Info.
 
+**Kelas ramp harus selalu teremit, jadi `@theme static` — bukan `@theme`.**
+Tailwind v4 membuang variabel `@theme` yang tidak terlihat "dipakai", dan
+deteksinya statis berbasis teks sumber. Ramp di sini dibaca saat runtime di
+`src/tokens.js` dengan nama yang dibangun dari template string
+(``--color-${nama}-${i}``), sehingga tak terlihat pemindai. Akibatnya
+`--color-sanitasi-1` dan `-3` — yang nol kemunculan literal di HTML/JS —
+dibuang dari blok `:root` tema terang, sementara blok tema gelap (CSS biasa,
+bukan `@theme`) tetap memuatnya. Gejalanya khas dan menyesatkan: swatch "Baik"
+dan "Rendah" di legenda sama-sama transparan sehingga tampak identik, seluruh
+choropleth jadi satu warna datar, dan bar gradien legenda peta mati — **hanya di
+tema terang**. `@theme static` memaksa semua variabel selalu teremit. Jangan
+kembalikan ke `@theme` biasa; lihat komentar di `src/styles.css`.
+
 ---
 
 ## Aksesibilitas
@@ -128,17 +141,29 @@ halaman Info.
   (terang) dan 4,85:1–16,90:1 (gelap); tidak ada satu pun di bawah ambang.
 - Warna yang dipakai sebagai **teks** tidak meminjam langkah ramp yang dipilih
   sebagai isian peta. `--color-sanitasi-2` (titik scatter, poligon) hanya
-  3,47:1 bila dipakai sebagai teks 12px, jadi tautan memakai token tersendiri
-  `--color-link` yang langkahnya dipilih dengan mengukur. Judul galat juga
-  memakai langkah merah yang lebih terang di tema gelap, karena warna status
-  yang tetap akan jatuh di bawah ambang pada latar `#0d0d0d`.
+  4,11–4,22:1 bila dipakai sebagai teks 12px — di bawah ambang AA — jadi tautan
+  memakai token tersendiri `--color-link` yang langkahnya dipilih dengan
+  mengukur (4,78:1 di kanvas, 4,91:1 di permukaan). Judul galat juga memakai
+  langkah merah yang lebih terang di tema gelap, karena warna status yang tetap
+  akan jatuh di bawah ambang pada latar `#0d0d0d`.
 - Rampa warna divalidasi, bukan dikira-kira. Untuk ramp sekuensial, jaminan
   keterbacaan bagi buta warna datang dari **satu hue dengan luminansi yang
   monoton** (CVD mempertahankan luminansi, sehingga urutan tetap terbaca tanpa
-  membedakan hue). Validator palet memastikan keempat syaratnya pada kedua tema:
-  luminansi monoton, jarak antar-langkah ΔL ≥ 0,06, ujung terang tetap ≥ 2:1
-  terhadap permukaan, dan sebaran hue 0°. Keempat ramp (stunting & sanitasi,
-  terang & gelap) lolos semua.
+  membedakan hue). Validator memastikan empat syarat pada tiap ramp dan tema:
+  luminansi monoton, jarak antar-langkah ΔY ≥ 0,06, ujung terang tetap ≥ 2:1
+  terhadap permukaan, dan sebaran hue jauh di bawah 40°. Hasil terukur keempat
+  ramp (stunting & sanitasi, terang & gelap):
+
+  | Ramp | ΔY antar langkah | Ujung terang | Sebaran hue |
+  |---|---|---|---|
+  | sanitasi terang | 0,260 / 0,135 | 2,04:1 | 0,5° |
+  | sanitasi gelap  | 0,168 / 0,310 | 2,33:1 | 0,6° |
+  | stunting terang | 0,116 / 0,081 | 2,67:1 | 2,0° |
+  | stunting gelap  | 0,094 / 0,142 | 2,71:1 | 3,3° |
+
+  Keempatnya lolos semua syarat. Langkah sanitasi sengaja dipilih ulang agar
+  jarak antar-kelasnya **sama besar** (ΔL* ≈ 22 per langkah); ramp lama timpang
+  (ΔL* 17 lalu 22) sehingga dua kelas teratas tampak berdekatan.
 - Navigasi tab mendukung panah kiri/kanan dengan *roving tabIndex* dan peran
   ARIA `tablist`; pindah tab dapat di-bookmark lewat `#home` / `#peta` / `#info`.
 - Identitas kelas pada tabel tidak bergantung pada warna saja — ada label teks

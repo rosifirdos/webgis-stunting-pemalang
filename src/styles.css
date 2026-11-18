@@ -7,9 +7,20 @@
      terhadap permukaan (lolos `--ordinal` di light & dark).
    - Rencana awal YlOrRd DITOLAK validator: kuning->merah itu dua hue
      (hue spread 53 deg, batas 40 deg). Diganti oranye satu-hue.
+
+   `static` WAJIB di sini, bukan pilihan gaya. Tanpa itu Tailwind hanya
+   mengemit variabel @theme yang terlihat "dipakai", dan deteksinya statis
+   berbasis teks sumber. Ramp di proyek ini dibaca saat runtime lewat
+   getComputedStyle() di src/tokens.js dengan nama yang dibangun dari template
+   string (`--color-${nama}-${i}`), sehingga tak terlihat pemindai. Akibatnya
+   --color-sanitasi-1 dan -3 - yang nol kemunculan literal - dibuang dari blok
+   :root tema terang, padahal blok tema gelap (CSS biasa, bukan @theme) tetap
+   memuatnya. Gejalanya: swatch "Baik" dan "Rendah" di legenda sama-sama
+   transparan sehingga tampak identik, dan bar gradien legenda peta mati.
+   Lihat catatan pada ramp sanitasi di bawah.
    ========================================================================== */
 
-@theme {
+@theme static {
   --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 
   /* --- permukaan & tinta (light) --- */
@@ -37,10 +48,16 @@
   --color-stunting-2: #da562a;
   --color-stunting-3: #b14420;
 
-  /* --- choropleth: sanitasi layak (biru, rendah -> tinggi) --- */
-  --color-sanitasi-1: #8db6ee;
-  --color-sanitasi-2: #3c86e5;
-  --color-sanitasi-3: #164f95;
+  /* --- choropleth: sanitasi layak (biru, rendah -> tinggi) --------------
+     Langkah L* dipilih agar jarak antar kelas sama besar (22 L* per langkah),
+     bukan diwarisi dari ramp lama yang langkahnya timpang (17 vs 22). Biru
+     pekat dipakai untuk capaian tinggi; tema gelap membalik arahnya.
+     Syarat yang dipenuhi (dihitung, bukan dikira): hue tunggal 0,5 deg,
+     L* monoton, kontras ujung terang 9,49:1 dan ujung gelap 2,04:1 terhadap
+     permukaan - keduanya di atas ambang 2:1. dE ujung Rendah<->Baik = 44,4. */
+  --color-sanitasi-1: #89b4ff;
+  --color-sanitasi-2: #007bda;
+  --color-sanitasi-3: #02457e;
 
   /* --- status (tetap, tidak di-theme) --- */
   --color-good: #0ca30c;
@@ -69,9 +86,9 @@
     --color-stunting-2: #d45624;
     --color-stunting-3: #f28058;
 
-    --color-sanitasi-1: #2462b1;
-    --color-sanitasi-2: #3c86e4;
-    --color-sanitasi-3: #7ab0f9;
+    --color-sanitasi-1: #01569b;
+    --color-sanitasi-2: #038df8;
+    --color-sanitasi-3: #acc7ff;
   }
 }
 :root[data-theme="dark"] {
@@ -89,9 +106,9 @@
   --color-stunting-2: #d45624;
   --color-stunting-3: #f28058;
 
-  --color-sanitasi-1: #2462b1;
-  --color-sanitasi-2: #3c86e4;
-  --color-sanitasi-3: #7ab0f9;
+  --color-sanitasi-1: #01569b;
+  --color-sanitasi-2: #038df8;
+  --color-sanitasi-3: #acc7ff;
 }
 
 /* ==========================================================================
