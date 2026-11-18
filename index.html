@@ -128,8 +128,9 @@
       <!-- Pesan galat -->
       <div
         id="galat"
-        class="card hidden border-[var(--color-critical)] p-4 text-sm"
+        class="card border-[var(--color-critical)] p-4 text-sm"
         role="alert"
+        hidden
       >
         <p class="font-medium text-[var(--color-critical)]">Data gagal dimuat</p>
         <p id="galat-pesan" class="mt-1 text-[var(--color-ink-2)]"></p>
@@ -315,7 +316,7 @@
             <div class="chart-box mt-4" data-chart="bar">
               <canvas id="grafik-bar" role="img" aria-label="Diagram batang peringkat prevalensi stunting 14 kecamatan"></canvas>
             </div>
-            <div class="mt-4 hidden" data-tabel="bar"></div>
+            <div class="mt-4" data-tabel="bar" hidden></div>
           </figure>
 
           <!-- Scatter -->
@@ -343,7 +344,7 @@
             <div class="chart-box mt-4" data-chart="scatter">
               <canvas id="grafik-scatter" role="img" aria-label="Diagram sebar hubungan sanitasi layak dan stunting"></canvas>
             </div>
-            <div class="mt-4 hidden" data-tabel="scatter"></div>
+            <div class="mt-4" data-tabel="scatter" hidden></div>
 
             <!-- Korelasi ditampilkan eksplisit: r lemah harus dinyatakan,
                  bukan dibiarkan pembaca menyimpulkan hubungan kuat. -->
@@ -559,7 +560,7 @@
             </div>
 
             <!-- Kecamatan terpilih -->
-            <div id="kartu-terpilih" class="card hidden p-4">
+            <div id="kartu-terpilih" class="card p-4" hidden>
               <h3
                 class="text-xs font-semibold uppercase tracking-wide text-[var(--color-ink-3)]"
               >

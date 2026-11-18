@@ -75,7 +75,7 @@ function tampilkanGalat(pesan) {
   document.getElementById("pemuat")?.remove();
   const kotak = document.getElementById("galat");
   if (!kotak) return;
-  kotak.classList.remove("hidden");
+  kotak.hidden = false;
   const p = document.getElementById("galat-pesan");
   if (p) p.textContent = pesan;
 }
