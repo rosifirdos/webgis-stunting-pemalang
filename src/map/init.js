@@ -72,7 +72,7 @@ export function punyaVersiGelap(nama) {
 
 let peta = null;
 let tileLayer = null;
-let namaBasemap = "terang";
+let namaBasemap = "satelit";
 
 export function getPeta() {
   return peta;
