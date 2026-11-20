@@ -3,8 +3,8 @@ import tailwindcss from "@tailwindcss/vite";
 
 export default defineConfig({
   plugins: [tailwindcss()],
-  // "./" keeps asset URLs relative, so dist/ works on GitHub Pages sub-paths too.
-  base: "./",
+  // Absolute path for GitHub Pages sub-directory deployment
+  base: "/webgis-stunting-pemalang/",
   server: { open: true },
   build: {
     target: "es2020",
