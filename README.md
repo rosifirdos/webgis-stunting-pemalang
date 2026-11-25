@@ -64,8 +64,9 @@ webgis-stunting-pemalang/
 │  ├─ tokens.js                  baca token warna dari CSS, simpan preferensi tema
 │  ├─ data/
 │  │  ├─ load.js                 fetch + cache GeoJSON
-│  │  ├─ classify.js             kelas kuantil 5 + tingkat prioritas + indeks kapasitas
-│  │  └─ stats.js                KPI, korelasi Pearson, peringkat
+│  │  ├─ classify.js             kelas kuantil 5 + tingkat prioritas + kuantil generik
+│  │  ├─ determinan.js           registry 9 determinan yang punya nilai per kecamatan
+│  │  └─ stats.js                KPI, ringkasan, peringkat
 │  ├─ map/
 │  │  ├─ init.js                 peta, basemap, kontrol
 │  │  ├─ layers.js               definisi 4 layer + ramp QGIS (Reds/Blues/RdYlGn/prioritas)
@@ -218,8 +219,9 @@ Ketentuan yang dipegang:
 Panel **Peta** memakai **peta Leaflet interaktif** (`src/map/*`) yang digambar
 dari `public/data/kecamatan.geojson`: bisa digeser, di-zoom, berganti layer,
 berganti basemap, dan diklik per kecamatan. Empat layer tersedia di kanvas yang
-sama: **prevalensi stunting** (fokus studi), **sanitasi layak** (determinan
-opsional), **tingkat prioritas** (4 warna kategori), dan **indeks kapasitas
+sama: **prevalensi stunting** (fokus studi), **determinan** (sembilan variabel
+yang punya nilai per kecamatan, dipilih lewat dropdown — sanitasi layak salah
+satunya), **tingkat prioritas** (4 warna kategori), dan **indeks kapasitas
 layanan**.
 Klik satu poligon menyorot baris tabel, grafik, dan kartu "Kecamatan terpilih".
 Peta ini memakai 5 kelas Quantile dan ramp warna yang sama dengan QGIS.
@@ -246,7 +248,8 @@ yang tidak konsisten antar-baris puskesmas pada Tabel 81 mentah. Nilai
 
 - skala warna diklasifikasi pada rentang tetap 0–100%, sehingga nilai ini jatuh
   di luar kelas teratas dan terlihat menonjol;
-- diberi penanda `*` pada tooltip, popup, dan layer peta sanitasi;
+- diberi penanda ⚠ pada tooltip, popup, dan kartu terpilih untuk setiap
+  determinan yang nilainya di atas 100%;
 - dicatat eksplisit di halaman Info.
 
 **Tidak ada determinan yang signifikan, dan itu ditampilkan sebagai temuan.**
@@ -259,7 +262,8 @@ Info, bukan diangkat menjadi narasi tunggal. Rinciannya ada di panel Info.
 
 **Peta memakai warna QGIS apa adanya; grafik memakai ramp tema.** Isi poligon
 disalin dari proyek QGIS — *Reds* lima kelas untuk stunting dan *Blues* lima
-kelas untuk sanitasi — dengan garis batas #232323 seperti outline layout cetak.
+kelas untuk layer determinan — dengan garis batas #232323 seperti outline
+layout cetak.
 Ramp ini **tidak ikut tema**: satu kelas selalu berwarna sama di terang dan
 gelap, sehingga arti warnanya tidak terbalik saat tema berganti dan peta di
 layar terbaca sama dengan peta cetak. Grafik batang memakai token

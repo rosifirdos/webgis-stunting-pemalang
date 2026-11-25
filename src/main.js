@@ -27,6 +27,7 @@ import { initInfo } from "./ui/info.js";
 import { initTema, siklusTema, onTema, isGelap, getMode } from "./tokens.js";
 import { buatPeta, ukuranUlang } from "./map/init.js";
 import { gambarChoropleth, gambarUlang, pilih, tandaiFilter, fitJikaPerlu } from "./map/choropleth.js";
+import { setDataPeta } from "./map/layers.js";
 import { gambarLegenda } from "./map/legend.js";
 import {
   initKontrolPeta,
@@ -134,6 +135,9 @@ async function mulai() {
     initFilter(semua.length);
 
     /* --- peta -------------------------------------------------------------- */
+    // Break kuantil layer determinan dihitung dari data yang sama dengan
+    // poligon, jadi baris harus terpasang sebelum peta digambar.
+    setDataPeta(semua);
     const peta = buatPeta(document.getElementById("kanvas-peta"), { gelap: isGelap() });
     gambarChoropleth(peta, geojson, semua, {
       pilih: (nama) => pilihKecamatan(nama, { dari: "peta" }),

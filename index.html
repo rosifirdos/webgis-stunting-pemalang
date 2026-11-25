@@ -341,8 +341,8 @@
     <section id="panel-peta" role="tabpanel" aria-labelledby="tab-peta" data-panel="peta" hidden>
       <!--
         Peta utama: kanvas Leaflet interaktif (src/map/*) dengan pan, zoom,
-        empat layer (stunting, sanitasi layak sebagai determinan opsional,
-        tingkat prioritas, indeks kapasitas layanan), basemap, dan klik
+        empat layer (stunting, determinan — 9 variabel pilih-pilih termasuk
+        sanitasi, tingkat prioritas, indeks kapasitas layanan), basemap, dan klik
         kecamatan. Peta cetak hasil ekspor QGIS tidak disematkan di halaman;
         berkasnya tetap ada di public/peta/ untuk kebutuhan cetak.
       -->
@@ -374,13 +374,20 @@
 
                 <label
                   class="flex cursor-pointer items-start gap-2.5 rounded-lg border border-[var(--color-hairline)] p-2.5 transition hover:bg-[var(--color-canvas)] has-[:checked]:border-[var(--color-sanitasi-2)] has-[:checked]:bg-[var(--color-canvas)]">
-                  <input type="radio" name="layer" value="sanitasi" class="mt-0.5 accent-[var(--color-sanitasi-2)]" />
+                  <input type="radio" name="layer" value="determinan" class="mt-0.5 accent-[var(--color-sanitasi-2)]" />
                   <span class="min-w-0">
-                    <span class="block text-sm font-medium">Sanitasi layak (determinan)</span>
-                    <span class="block text-xs text-[var(--color-ink-3)]">Layer opsional; salah satu dari 95
-                      determinan yang diuji</span>
+                    <span class="block text-sm font-medium">Determinan (pilih variabel)</span>
+                    <span class="block text-xs text-[var(--color-ink-3)]">Layer opsional; 9 dari 95 determinan yang
+                      punya nilai per kecamatan</span>
                   </span>
                 </label>
+
+                <div class="-mt-0.5 pl-7">
+                  <label for="determinan-pilih" class="sr-only">Variabel determinan</label>
+                  <select id="determinan-pilih"
+                    class="w-full rounded-md border border-[var(--color-hairline)] bg-[var(--color-surface)] px-2 py-1.5 text-xs text-[var(--color-ink)]">
+                  </select>
+                </div>
 
                 <label
                   class="flex cursor-pointer items-start gap-2.5 rounded-lg border border-[var(--color-hairline)] p-2.5 transition hover:bg-[var(--color-canvas)] has-[:checked]:border-[var(--color-hairline)] has-[:checked]:bg-[var(--color-canvas)]">
@@ -443,8 +450,8 @@
                   <dd id="terpilih-stunting" class="tnum text-right font-medium"></dd>
                 </div>
                 <div class="flex items-baseline justify-between gap-3">
-                  <dt class="text-[var(--color-ink-2)]">Sanitasi layak</dt>
-                  <dd id="terpilih-sanitasi" class="tnum text-right font-medium"></dd>
+                  <dt id="terpilih-determinan-label" class="text-[var(--color-ink-2)]">Determinan</dt>
+                  <dd id="terpilih-determinan" class="tnum text-right font-medium"></dd>
                 </div>
                 <div class="flex items-baseline justify-between gap-3">
                   <dt class="text-[var(--color-ink-2)]">Prioritas</dt>
@@ -469,7 +476,7 @@
                  kanvas ini SETELAH tabs.js menggulir ke atas - halaman Peta
                  jadi mendarat dalam keadaan tergulir. -->
             <div id="kanvas-peta" class="h-[60vh] min-h-[420px] w-full lg:h-full lg:min-h-[520px]" role="application"
-              aria-label="Peta interaktif prevalensi stunting Kabupaten Pemalang 2024, 5 kelas kuantil; dapat diganti ke sanitasi layak (determinan), tingkat prioritas, dan indeks kapasitas layanan"></div>
+              aria-label="Peta interaktif prevalensi stunting Kabupaten Pemalang 2024, 5 kelas kuantil; dapat diganti ke salah satu dari 9 determinan, tingkat prioritas, dan indeks kapasitas layanan"></div>
 
             <!-- Legenda skala mengambang di atas peta -->
             <div

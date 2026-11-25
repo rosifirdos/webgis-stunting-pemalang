@@ -1,6 +1,5 @@
 import { Chart } from "chart.js";
 import { token } from "../tokens.js";
-import { panelAktif } from "../map/layers.js";
 import { angka } from "../data/stats.js";
 import { KELAS_STUNTING, labelSingkat } from "../data/classify.js";
 import { palet, gayaTip, pluginLabelBatang } from "./base.js";

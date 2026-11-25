@@ -1,6 +1,6 @@
 import L from "leaflet";
 import { token } from "../tokens.js";
-import { panelAktif, warnaUntuk, nilaiTeks } from "./layers.js";
+import { panelAktif, panelDeterminanAktif, warnaUntuk, nilaiTeks } from "./layers.js";
 import { angka } from "../data/stats.js";
 import {
   labelSingkat,
@@ -73,13 +73,14 @@ const barisDl = (label, nilai) =>
 
 function htmlPopup(feature) {
   const p = baris(feature);
-  const luar = p.sanitasi_pct > 100;
+  const det = panelDeterminanAktif();
+  const nilaiDet = nilaiTeks(p, det);
   const kelasKap = kelasKapasitas(p.idx_layanan);
   const idxTeks = `${p.idx_layanan > 0 ? "+" : ""}${angka(p.idx_layanan, 2)}`;
 
-  // Empat baris popup: stunting (kelas), prioritas, kapasitas, dan sanitasi
-  // layak sebagai data pelengkap. Angka mentah tetap ditampilkan supaya
-  // bisa dikutip.
+  // Empat baris popup: stunting (kelas), prioritas, kapasitas, dan determinan
+  // yang sedang dipilih di pengalih layer. Angka mentah tetap ditampilkan
+  // supaya bisa dikutip.
   return `
     <div style="min-width:214px">
       <p style="margin:0;font-size:14px;font-weight:600">${p.kecamatan}</p>
@@ -102,14 +103,14 @@ function htmlPopup(feature) {
            <span style="font-weight:400;color:var(--color-ink-3)">(kelas ${kelasKap}/5)</span>`
         )}
         ${barisDl(
-          "Sanitasi layak",
-          `${angka(p.sanitasi_pct, 2)}%${luar ? " ⚠" : ""}`
+          det.judul.replace(/ \(determinan\)$/, ""),
+          `${nilaiDet.teks}${nilaiDet.diLuarSkala ? " ⚠" : ""}`
         )}
       </dl>
       ${
-        luar
+        nilaiDet.diLuarSkala
           ? `<p style="margin:9px 0 0;padding-top:8px;border-top:1px solid var(--color-hairline);font-size:11px;line-height:1.45;color:var(--color-ink-2)">
-               ⚠ Sanitasi di atas 100% — dibaca sebagai capaian program, bukan proporsi rumah tangga.
+               ⚠ Nilai di atas 100% — dibaca sebagai capaian program, bukan proporsi rumah tangga.
              </p>`
           : ""
       }

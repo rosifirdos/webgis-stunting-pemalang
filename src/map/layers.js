@@ -1,36 +1,39 @@
 import { getState } from "../state/store.js";
 import {
   kelasStunting,
-  kelasSanitasi,
   kelasKapasitas,
   KELAS_STUNTING,
-  KELAS_SANITASI,
   KELAS_KAPASITAS,
   KATEGORI_PRIORITAS,
+  breakKuantil,
+  kelasDariKuantil,
+  susunKelasDeterminan,
 } from "../data/classify.js";
+import { determinanDari } from "../data/determinan.js";
 
 /**
  * Warna isi poligon disalin dari proyek QGIS 3.44.16
  * (../output/Pemalang_Stunting_Sanitasi_2024.qgz), bukan dari token tema:
  *   Prevalensi Stunting 2024        -> Reds    5 kelas kuantil
- *   Sanitasi layak (determinan)     -> Blues   5 kelas kuantil
+ *   Determinan (termasuk sanitasi)  -> Blues   5 kelas kuantil
  *   Indeks Kapasitas Layanan 2024   -> RdYlGn  5 kelas kuantil
  *   Tingkat prioritas               -> 4 warna kategori
  * Karena ramp ini tetap di tema terang maupun gelap, satu kelas selalu
  * berwarna sama - tidak ada arti warna yang terbalik saat tema berganti -
  * dan peta di layar membaca sama dengan peta cetak.
  *
- * Sanitasi layak adalah layer opsional: salah satu dari 95 determinan yang
- * diuji, bukan variabel kedua yang setara stunting. Strukturnya sama dengan
- * variabel determinan lain - kelas kuantilnya sendiri, tanpa peran khusus
- * dalam prioritas maupun narasi.
+ * Layer "determinan" sengaja generik: sembilan variabel yang punya nilai per
+ * kecamatan dipetakan dengan satu mekanisme yang sama. Tidak ada variabel
+ * yang dijadikan pembanding atau diberi kelas tulis tangan - break kuantil
+ * dihitung dari data, sehingga sanitasi dan delapan determinan lain benar-
+ * benar setara.
  *
  * Grafik batang tetap memakai token --color-stunting-*, yang langkahnya
  * dipilih ulang untuk tema gelap.
  */
 export const RAMP_QGIS = {
   stunting: ["#fff5f0", "#fcbea5", "#fb7050", "#d32020", "#67000d"],
-  sanitasi: ["#f7fbff", "#c8dcf0", "#73b2d8", "#2979b9", "#08306b"],
+  determinan: ["#f7fbff", "#c8dcf0", "#73b2d8", "#2979b9", "#08306b"],
   kapasitas: ["#d7191c", "#fdae61", "#ffffbf", "#a6d96a", "#1a9641"],
 };
 
@@ -70,16 +73,6 @@ export const PANEL = {
     catatan:
       "Fokus studi. Lima kelas kuantil; batas dan warna kategori (Reds) sama dengan peta QGIS. Kelas tinggi = prevalensi tinggi.",
   },
-  sanitasi: {
-    nama: "sanitasi",
-    jenis: "kuantil",
-    judul: "Sanitasi layak (determinan)",
-    satuan: "%",
-    field: "sanitasi_pct",
-    kelas: legenda(KELAS_SANITASI),
-    catatan:
-      "Layer opsional: salah satu dari 95 determinan yang diuji terhadap stunting (hasil lengkap di panel Info). Lima kelas kuantil dengan warna Blues QGIS. Nilai di atas 100% tetap di kelas 5 dan ditandai di luar skala, tidak dikoreksi.",
-  },
   prioritas: {
     nama: "prioritas",
     jenis: "kategori",
@@ -102,22 +95,65 @@ export const PANEL = {
   },
 };
 
+/* ---------------------------------------------------------------------------
+   Layer determinan: satu panel, sembilan variabel.
+   ------------------------------------------------------------------------- */
+
+let barisData = [];
+const cachePanel = new Map();
+
+/** Pasang baris statistik sekali setelah GeoJSON termuat. */
+export function setDataPeta(rows) {
+  barisData = rows ?? [];
+  cachePanel.clear();
+}
+
+function panelDeterminan(field) {
+  const d = determinanDari(field ?? getState().determinan);
+  if (cachePanel.has(d.field)) return cachePanel.get(d.field);
+
+  const breaks = breakKuantil(barisData.map((r) => Number(r[d.field])));
+  const panel = {
+    nama: "determinan",
+    jenis: "kuantil",
+    judul: `${d.label} (determinan)`,
+    satuan: d.satuan,
+    field: d.field,
+    desimal: d.desimal,
+    breaks,
+    kelas: legenda(susunKelasDeterminan(breaks, d)),
+    catatan:
+      breaks.length < 4
+        ? "Data determinan belum termuat."
+        : `Layer opsional: ${d.label.toLowerCase()} adalah satu dari 95 determinan yang diuji terhadap stunting. Lima kelas kuantil dihitung dari nilai 14 kecamatan (bukan break tulis tangan), warna Blues sama dengan peta QGIS. Hasil ujinya ada di panel Info.`,
+  };
+
+  cachePanel.set(d.field, panel);
+  return panel;
+}
+
+/** Panel determinan untuk variabel yang sedang dipilih. */
+export function panelDeterminanAktif() {
+  return panelDeterminan();
+}
+
 export function panelAktif() {
-  return PANEL[getState().layer] ?? PANEL.stunting;
+  const { layer } = getState();
+  if (layer === "determinan") return panelDeterminan();
+  return PANEL[layer] ?? PANEL.stunting;
 }
 
 /** Tingkat kelas 1..5 untuk sebuah baris pada panel kuantil. */
 function tingkatKelas(row, panel) {
-  const v = row[panel.field];
-  if (panel.nama === "stunting") return kelasStunting(v);
-  if (panel.nama === "sanitasi") return kelasSanitasi(v);
-  return kelasKapasitas(v);
+  if (panel.nama === "stunting") return kelasStunting(row.stunting_pct);
+  if (panel.nama === "kapasitas") return kelasKapasitas(row.idx_layanan);
+  return kelasDariKuantil(row[panel.field], panel.breaks);
 }
 
 /**
  * Warna isi polygon untuk sebuah kecamatan pada layer aktif.
- * Nilai di atas 100% (sanitasi) tetap memakai langkah teratas, lalu ditandai
- * pada popup/legenda. Panel kategori memakai warna tingkat prioritasnya.
+ * Nilai di atas 100% tetap memakai langkah teratas, lalu ditandai pada
+ * popup/legenda. Panel kategori memakai warna tingkat prioritasnya.
  */
 export function warnaUntuk(row, panel = panelAktif()) {
   if (panel.jenis === "kategori") {
@@ -131,24 +167,25 @@ export function warnaUntuk(row, panel = panelAktif()) {
 
 /** Nilai yang ditulis di tooltip/popup, dengan penanda bila di luar skala. */
 export function nilaiTeks(row, panel = panelAktif()) {
-  const v = row[panel.field];
-
   if (panel.nama === "prioritas") {
     return { teks: row.prioritas, diLuarSkala: false };
   }
 
+  const v = Number(row[panel.field]);
+
   if (panel.nama === "kapasitas") {
-    const teks = Number(v).toLocaleString("id-ID", {
+    const teks = v.toLocaleString("id-ID", {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     });
-    return { teks: `${Number(v) > 0 ? "+" : ""}${teks}`, diLuarSkala: false };
+    return { teks: `${v > 0 ? "+" : ""}${teks}`, diLuarSkala: false };
   }
 
-  const teks = Number(v).toLocaleString("id-ID", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
+  const desimal = panel.desimal ?? 2;
+  const teks = v.toLocaleString("id-ID", {
+    minimumFractionDigits: desimal,
+    maximumFractionDigits: desimal,
   });
-  const luar = panel.nama === "sanitasi" && v > 100;
-  return { teks: `${teks}%`, diLuarSkala: luar };
+  const luar = panel.nama === "determinan" && panel.satuan === "%" && v > 100;
+  return { teks: `${teks}${panel.satuan ?? "%"}`, diLuarSkala: luar };
 }

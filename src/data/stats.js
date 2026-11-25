@@ -1,6 +1,5 @@
 import {
   kelasStunting,
-  kelasSanitasi,
   prioritas,
   alasanPrioritas,
   KATEGORI_PRIORITAS,
@@ -20,8 +19,6 @@ export function siapkanBaris(features) {
       ...p,
       // Angka 1..5, dipakai langsung sebagai indeks ramp warna.
       kelas: kelasStunting(p.stunting_pct),
-      // Sanitasi hanya pelengkap data; kelasnya dipakai layer peta opsional.
-      kelasSanitasi: kelasSanitasi(p.sanitasi_pct),
       // Tingkat prioritas murni dari prevalensi stunting (lihat classify.js).
       prioritas: prioritas(p),
       alasanPrioritas: alasanPrioritas(p),

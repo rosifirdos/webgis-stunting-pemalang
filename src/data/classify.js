@@ -56,15 +56,77 @@ export function kelasKapasitas(idx) {
 }
 
 /**
- * Sanitasi layak diperlakukan persis seperti variabel determinan lain:
- * kelas kuantilnya sendiri (break sama dengan renderer QGIS, ramp Blues),
- * dipakai hanya oleh layer peta opsional - bukan oleh tingkat prioritas,
- * klasifikasi apa pun yang menaikkan statusnya, maupun narasi utama.
+ * Klasifikasi generik untuk layer determinan.
+ *
+ * Determinannya 9 variabel (yang punya nilai per kecamatan), dan tidak ada
+ * satu pun yang mendapat break tulis tangan. Break kuantil dihitung dari
+ * nilai 14 kecamatan dengan metode yang sama seperti renderer QGIS
+ * (kuantil tipe 7): untuk sanitasi layak hasilnya persis
+ * 55,506 / 64,24 / 71,46 / 76,55 - jadi warna web tetap cocok dengan peta
+ * cetak tanpa menaruh angka sanitasi di kode.
  */
-export const BREAK_SANITASI = [55.506, 64.24, 71.46, 76.55];
+export function breakKuantil(nilai, jumlahKelas = 5) {
+  const urut = nilai
+    .map(Number)
+    .filter(Number.isFinite)
+    .sort((a, b) => a - b);
+  if (urut.length < jumlahKelas) return [];
 
-export function kelasSanitasi(pct) {
-  return kelasDariBreak(pct, BREAK_SANITASI);
+  const break_ = [];
+  for (let i = 1; i < jumlahKelas; i++) {
+    const pos = ((urut.length - 1) * i) / jumlahKelas;
+    const bawah = Math.floor(pos);
+    const atas = Math.ceil(pos);
+    const v =
+      bawah === atas
+        ? urut[bawah]
+        : urut[bawah] + (urut[atas] - urut[bawah]) * (pos - bawah);
+    break_.push(Number(v.toFixed(4)));
+  }
+  return break_;
+}
+
+/** Kelas 1..5 untuk nilai apa pun terhadap break hasil breakKuantil(). */
+export function kelasDariKuantil(nilai, breaks) {
+  return kelasDariBreak(nilai, breaks);
+}
+
+const LABEL_DETERMINAN = [
+  "Kelas 1 — terendah",
+  "Kelas 2 — rendah",
+  "Kelas 3 — sedang",
+  "Kelas 4 — tinggi",
+  "Kelas 5 — tertinggi",
+];
+
+/**
+ * Lima kelas + teks rentangnya untuk sebuah determinan. Label sengaja netral
+ * ("terendah"–"tertinggi"), bukan "buruk/baik": arah tiap determinan berbeda,
+ * dan legenda tidak boleh menghakimi variabel yang tidak sedang dibahas.
+ */
+export function susunKelasDeterminan(
+  breaks,
+  { satuan = "%", angkaDesimal = 2 } = {}
+) {
+  const fmt = (v) =>
+    Number(v).toLocaleString("id-ID", {
+      minimumFractionDigits: angkaDesimal,
+      maximumFractionDigits: angkaDesimal,
+    });
+
+  const rentang = (i) => {
+    if (i === 0) return `< ${fmt(breaks[0])}${satuan}`;
+    if (i === breaks.length) return `≥ ${fmt(breaks[breaks.length - 1])}${satuan}`;
+    return `${fmt(breaks[i - 1])} – ${fmt(breaks[i])}${satuan}`;
+  };
+
+  return LABEL_DETERMINAN.map((label, i) => ({
+    tingkat: i + 1,
+    label,
+    min: i === 0 ? null : breaks[i - 1],
+    max: i === breaks.length ? null : breaks[i],
+    keterangan: rentang(i),
+  }));
 }
 
 /** Teks rentang tiap kelas, dibangun dari break agar tidak bisa melenceng. */
@@ -118,16 +180,6 @@ export const KELAS_KAPASITAS = susunKelas(
   BREAK_KAPASITAS,
   rentangIndeks
 );
-
-const LABEL_SANITASI = [
-  "Kelas 1 — terendah",
-  "Kelas 2 — rendah",
-  "Kelas 3 — sedang",
-  "Kelas 4 — tinggi",
-  "Kelas 5 — tertinggi",
-];
-
-export const KELAS_SANITASI = susunKelas(LABEL_SANITASI, BREAK_SANITASI);
 
 /** Label tanpa awalan "Kelas n — " untuk ruang sempit (popup, tooltip). */
 export function labelSingkat(tingkat, daftar = KELAS_STUNTING) {

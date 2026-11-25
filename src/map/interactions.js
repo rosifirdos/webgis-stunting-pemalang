@@ -1,7 +1,12 @@
 import { getState, setState } from "../state/store.js";
 import { angka } from "../data/stats.js";
 import { isGelap } from "../tokens.js";
-import { panelAktif } from "./layers.js";
+import {
+  panelAktif,
+  panelDeterminanAktif,
+  nilaiTeks,
+} from "./layers.js";
+import { DETERMINAN, FIELD_BAWAAN } from "../data/determinan.js";
 import { pilih as pilihPeta, muatSemua } from "./choropleth.js";
 import { gambarLegenda } from "./legend.js";
 import { pasangBasemap, perbaruiTemaBasemap, punyaVersiGelap } from "./init.js";
@@ -32,6 +37,36 @@ export function initKontrolPeta({ rows, pindahTab }) {
     radio.addEventListener("change", () => {
       if (!radio.checked) return;
       setState({ layer: radio.value });
+      gambarLegenda();
+      const live = document.getElementById("peta-pengumuman");
+      if (live) live.textContent = `Layer peta aktif: ${panelAktif().judul}`;
+    });
+  }
+
+  // --- pemilih variabel determinan ---
+  // Daftar opsi dibangun dari registry, bukan ditulis di HTML, supaya label,
+  // satuan, dan ketelitian angka tidak pernah berbeda antar-tempat.
+  const pilihDeterminan = document.getElementById("determinan-pilih");
+  if (pilihDeterminan) {
+    pilihDeterminan.replaceChildren(
+      ...DETERMINAN.map((d) => {
+        const opsi = document.createElement("option");
+        opsi.value = d.field;
+        opsi.textContent = `${d.label} (${d.satuan.trim() || "indeks"})`;
+        return opsi;
+      })
+    );
+    pilihDeterminan.value = getState().determinan ?? FIELD_BAWAAN;
+
+    // Mengganti variabel otomatis mengaktifkan layer determinan: pilihan
+    // pengguna tidak boleh diam-diam tidak berefek karena radio masih di
+    // layer lain.
+    pilihDeterminan.addEventListener("change", () => {
+      const radioDet = document.querySelector(
+        'input[name="layer"][value="determinan"]'
+      );
+      if (radioDet) radioDet.checked = true;
+      setState({ layer: "determinan", determinan: pilihDeterminan.value });
       gambarLegenda();
       const live = document.getElementById("peta-pengumuman");
       if (live) live.textContent = `Layer peta aktif: ${panelAktif().judul}`;
@@ -105,10 +140,13 @@ function perbaruiKartuTerpilih(nama) {
   isi("terpilih-stunting", `${angka(row.stunting_pct, 2)}% (kelas ${row.kelas}/5)`);
   isi("terpilih-prioritas", row.prioritas);
   isi("terpilih-kapasitas", idxTeksLayanan(row.idx_layanan));
-  isi(
-    "terpilih-sanitasi",
-    `${angka(row.sanitasi_pct, 2)}%${row.sanitasi_pct > 100 ? " ⚠" : ""}`
-  );
+
+  // Baris determinan mengikuti variabel yang sedang dipilih, bukan sanitasi
+  // saja - supaya kartu ini tidak kembali memberi satu variabel posisi khusus.
+  const det = panelDeterminanAktif();
+  const nilaiDet = nilaiTeks(row, det);
+  isi("terpilih-determinan-label", det.judul.replace(/ \(determinan\)$/, ""));
+  isi("terpilih-determinan", `${nilaiDet.teks}${nilaiDet.diLuarSkala ? " ⚠" : ""}`);
 
   const tautan = document.getElementById("terpilih-detail");
   if (tautan) tautan.setAttribute("aria-label", `Lihat ${row.kecamatan} di tabel data`);
@@ -117,7 +155,7 @@ function perbaruiKartuTerpilih(nama) {
   // ambigu ketika layer diganti.
   const JUDUL = {
     stunting: "Stunting",
-    sanitasi: "Sanitasi layak",
+    determinan: det.judul.replace(/ \(determinan\)$/, ""),
     prioritas: "Tingkat prioritas",
     kapasitas: "Kapasitas layanan",
   };

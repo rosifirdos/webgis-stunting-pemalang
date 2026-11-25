@@ -4,7 +4,8 @@
  * sehingga perubahan tampilan tidak butuh refactor lintas modul.
  */
 const state = {
-  layer: "stunting", // layer peta aktif
+  layer: "stunting", // layer peta aktif: stunting | determinan | prioritas | kapasitas
+  determinan: "sanitasi_pct", // variabel yang dipetakan saat layer = determinan
   terpilih: null, // nama kecamatan yang dipilih
   kelas: "", // filter kelas kerentanan
   cari: "", // kata kunci pencarian

@@ -29,8 +29,13 @@ pembanding di grafik batang. Amandemen ini menurunkannya sepenuhnya menjadi
    diangkat menjadi grafik tunggal.
 3. **Titik pembanding sanitasi di grafik batang dihapus**; grafik batang
    kembali satu seri (stunting).
-4. **Layer peta sanitasi tetap ada** sebagai layer opsional berlabel
-   "determinan", dengan kelas kuantilnya sendiri (Blues QGIS).
+4. **Layer peta determinan bersifat generik.** Sembilan determinan yang punya
+   nilai per kecamatan (sanitasi layak, sanitasi aman, jumlah KK sanitasi
+   layak, ASI eksklusif, catin anemia, cakupan penimbangan balita, KK stop
+   BABS, KK CTPS, desa 5 pilar STBM) dipilih lewat satu dropdown dan dipetakan
+   dengan satu mekanisme: kelas kuantil dihitung dari datanya sendiri, ramp
+   Blues yang sama. Tidak ada variabel determinan yang punya layer, kelas,
+   atau warna khusus.
 5. **Tabel data Home tidak lagi mengkolomkan sanitasi**; nilai tetap tersedia
    di unduhan CSV/GeoJSON dan di layer peta.
 6. Gambar lampiran QGIS **tidak disematkan di halaman** (Home maupun tab Peta);
