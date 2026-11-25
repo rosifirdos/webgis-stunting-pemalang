@@ -53,7 +53,7 @@ webgis-stunting-pemalang/
 │  │  └─ stats.js                KPI, korelasi Pearson, peringkat
 │  ├─ map/
 │  │  ├─ init.js                 peta, basemap, kontrol
-│  │  ├─ layers.js               definisi layer + atribut
+│  │  ├─ layers.js               definisi layer + ramp warna QGIS (Reds/Blues)
 │  │  ├─ choropleth.js           gaya polygon, tooltip, popup
 │  │  ├─ legend.js               legenda dinamis
 │  │  └─ interactions.js         hover, klik, sinkron tabel
@@ -213,8 +213,9 @@ Panel **Peta** memuat dua lapis peta dengan peran berbeda:
    kapasitas layanan. Ini yang dipakai bila legenda, anotasi, dan skala harus
    sama persis dengan layout untuk laporan cetak.
 
-Perbedaan warna antar-keduanya disengaja dan dijelaskan di bagian
-[Catatan metodologi](#catatan-metodologi).
+Warna poligon mengikuti ramp proyek QGIS, sehingga peta di layar dan peta cetak
+memakai kelas warna yang sama; bedanya hanya ada di grafik, dan itu dijelaskan
+di bagian [Catatan metodologi](#catatan-metodologi).
 
 ---
 
@@ -238,12 +239,15 @@ stunting hanya r = −0,22 (R² = 0,05). Nilai r dan R² ditampilkan apa adanya
 dengan keterangan netral: sanitasi bukan satu-satunya faktor penentu stunting
 pada tingkat kecamatan. Menyembunyikan angka yang lemah akan menyesatkan.
 
-**Warna web dan peta cetak sama-sama hangat, tetapi tidak identik.** Peta QGIS
-memakai ramp **Reds** lima kelas kuantil (krem → merah tua = stunting
-tertinggi). Di web, stunting memakai ramp **oranye satu hue** dengan luminansi
-monoton dan sanitasi memakai **biru** — dua hue berbeda supaya kedua variabel
-tidak tertukar saat dibaca berdampingan. Arah maknanya tetap sama: makin gelap,
-makin buruk. Perbedaan ini dicatat di halaman Info.
+**Peta memakai warna QGIS apa adanya; grafik memakai ramp tema.** Isi poligon
+disalin dari proyek QGIS — *Reds* lima kelas untuk stunting dan *Blues* lima
+kelas untuk sanitasi — dengan garis batas #232323 seperti outline layout cetak.
+Ramp ini **tidak ikut tema**: satu kelas selalu berwarna sama di terang dan
+gelap, sehingga arti warnanya tidak terbalik saat tema berganti dan peta di
+layar terbaca sama dengan peta cetak. Grafik batang dan sebar tetap memakai
+token `--color-stunting-*` / `--color-sanitasi-*`, yang langkahnya dipilih ulang
+untuk latar gelap karena grafik duduk di atas permukaan tema, bukan di atas
+citra. Perbedaan ini dicatat di halaman Info.
 
 **Kelas ramp harus selalu teremit, jadi `@theme static` — bukan `@theme`.**
 Tailwind v4 membuang variabel `@theme` yang tidak terlihat "dipakai", dan
@@ -292,6 +296,13 @@ kembalikan ke `@theme` biasa; lihat komentar di `src/styles.css`.
   Keempatnya lolos semua syarat. Langkah sanitasi sengaja dipilih ulang agar
   jarak antar-kelasnya **sama besar** (ΔL* ≈ 22 per langkah); ramp lama timpang
   (ΔL* 17 lalu 22) sehingga dua kelas teratas tampak berdekatan.
+- **Warna poligon peta berada di luar sistem token ini.** Ramp QGIS
+  (`Reds`/`Blues`) bukan ramp situs, jadi tidak melewati validator palet:
+  ujung terangnya `#fff5f0` hanya 1,05:1 terhadap permukaan putih. Karena itu
+  batas wilayah dinyatakan oleh outline `#232323`, bukan oleh kontras isian —
+  sama seperti pada layout cetak. Identitas kelas tetap tidak bergantung pada
+  warna: setiap langkah legenda membawa label kelas dan rentang angkanya, dan
+  tooltip menulis nilai per kecamatan.
 - Navigasi tab mendukung panah kiri/kanan dengan *roving tabIndex* dan peran
   ARIA `tablist`; pindah tab dapat di-bookmark lewat `#home` / `#peta` / `#info`.
 - Identitas kelas pada tabel tidak bergantung pada warna saja — ada label teks

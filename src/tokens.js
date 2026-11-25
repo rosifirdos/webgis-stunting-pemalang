@@ -10,7 +10,7 @@ export function token(nama) {
     .trim();
 }
 
-/** Lima langkah ramp choropleth, mis. tokenRamp("stunting"). */
+/** Lima langkah ramp token tema, mis. tokenRamp("stunting") untuk grafik. */
 export function tokenRamp(nama) {
   return [1, 2, 3, 4, 5].map((i) => token(`--color-${nama}-${i}`));
 }

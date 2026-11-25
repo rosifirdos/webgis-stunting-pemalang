@@ -43,8 +43,17 @@
      ramp: 4.78:1 di kanvas, 4.91:1 di permukaan, masih sewarna dengan ramp. */
   --color-link: #2a6fc4;
 
+  /* --- warna kategori peta (disalin dari QGIS, tidak di-theme) -----------
+     Poligon memakai ramp proyek QGIS apa adanya: Reds untuk stunting dan
+     Blues untuk sanitasi. Karena tetap di kedua tema, arti warnanya tidak
+     berubah saat tema berganti dan sama dengan peta cetak. Garis batas
+     mengikuti outline QGIS (#232323, 0,26 mm); di tema gelap diganti terang
+     supaya poligon bertetangga tetap terpisah di atas basemap gelap. */
+  --color-peta-garis: #232323;
+
   /* --- choropleth: prevalensi stunting (oranye, rendah -> tinggi) --------
-     Lima langkah dipilih dengan mengukur kontras terhadap permukaan terang:
+     Ramp ini dipakai grafik batang, bukan poligon peta. Lima langkah dipilih
+     dengan mengukur kontras terhadap permukaan terang:
      2,24 / 2,82 / 3,89 / 5,58 / 8,09 - ujung terang tetap di atas ambang
      2:1 yang disyaratkan pemakaian ordinal di permukaan. */
   --color-stunting-1: #f39268;
@@ -86,6 +95,8 @@
        Judul galat karena itu memakai langkah yang lebih terang khusus gelap. */
     --color-critical: #ea6a6a;
 
+    --color-peta-garis: #a9a7a0;
+
     --color-stunting-1: #8a3413;
     --color-stunting-2: #a63c0c;
     --color-stunting-3: #d45624;
@@ -109,6 +120,8 @@
   --color-axis: #383835;
   --color-link: #7ab0f9;
   --color-critical: #ea6a6a;
+
+  --color-peta-garis: #a9a7a0;
 
   --color-stunting-1: #8a3413;
   --color-stunting-2: #a63c0c;

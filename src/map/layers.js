@@ -1,4 +1,3 @@
-import { tokenRamp } from "../tokens.js";
 import { getState } from "../state/store.js";
 import {
   kelasStunting,
@@ -6,6 +5,30 @@ import {
   KELAS_STUNTING,
   KELAS_SANITASI,
 } from "../data/classify.js";
+
+/**
+ * Warna isi poligon disalin dari proyek QGIS 3.44.16
+ * (../output/Pemalang_Stunting_Sanitasi_2024.qgz), bukan dari token tema:
+ *   Prevalensi Stunting 2024        -> Reds  5 kelas kuantil
+ *   Cakupan Sanitasi Layak 2024     -> Blues 5 kelas kuantil
+ * Karena ramp ini tetap di tema terang maupun gelap, satu kelas selalu
+ * berwarna sama - tidak ada arti warna yang terbalik saat tema berganti -
+ * dan peta di layar membaca sama dengan peta cetak.
+ *
+ * Grafik (batang, sebar) tetap memakai token --color-stunting-* /
+ * --color-sanitasi-*, yang langkahnya dipilih ulang untuk tema gelap.
+ */
+export const RAMP_QGIS = {
+  stunting: ["#fff5f0", "#fcbea5", "#fb7050", "#d32020", "#67000d"],
+  sanitasi: ["#f7fbff", "#c8dcf0", "#73b2d8", "#2979b9", "#08306b"],
+};
+
+/** Warna kelas 1..5 (rendah -> tinggi) untuk sebuah variabel peta. */
+export function warnaKelas(nama, tingkat) {
+  const ramp = RAMP_QGIS[nama] ?? RAMP_QGIS.stunting;
+  const i = Math.min(Math.max(Math.round(tingkat), 1), ramp.length) - 1;
+  return ramp[i];
+}
 
 /**
  * Legenda memakai urutan tinggi->rendah (nilai besar di atas), sedangkan
@@ -25,20 +48,18 @@ export const PANEL = {
     judul: "Prevalensi Stunting",
     satuan: "%",
     field: "stunting_pct",
-    ramp: "stunting",
     kelas: legenda(KELAS_STUNTING),
     catatan:
-      "Lima kelas kuantil; batas sama dengan peta ekspor QGIS. Kelas tinggi = prevalensi tinggi.",
+      "Lima kelas kuantil; batas dan warna kategori (Reds) sama dengan peta QGIS. Kelas tinggi = prevalensi tinggi.",
   },
   sanitasi: {
     nama: "sanitasi",
     judul: "Akses Sanitasi Layak",
     satuan: "%",
     field: "sanitasi_pct",
-    ramp: "sanitasi",
     kelas: legenda(KELAS_SANITASI),
     catatan:
-      "Lima kelas kuantil. Nilai di atas 100% (Warungpring 111,77%) tetap di kelas 5 dan ditandai di luar skala, tidak dikoreksi.",
+      "Lima kelas kuantil dengan warna Blues QGIS. Nilai di atas 100% (Warungpring 111,77%) tetap di kelas 5 dan ditandai di luar skala, tidak dikoreksi.",
   },
 };
 
@@ -52,10 +73,9 @@ export function panelAktif() {
  * pada popup/legenda.
  */
 export function warnaUntuk(row, panel) {
-  const ramp = tokenRamp(panel.ramp);
   const v = row[panel.field];
   const tingkat = panel.nama === "stunting" ? kelasStunting(v) : kelasSanitasi(v);
-  return ramp[tingkat - 1];
+  return warnaKelas(panel.nama, tingkat);
 }
 
 /** Nilai yang ditulis di tooltip/popup, dengan penanda bila di luar skala. */

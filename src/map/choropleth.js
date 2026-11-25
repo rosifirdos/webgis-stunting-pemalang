@@ -8,10 +8,11 @@ import { labelSingkat } from "../data/classify.js";
  * Layer choropleth.
  *
  * Catatan gaya:
- * - Garis batas memakai warna permukaan (surface), bukan hitam. Ini memberi
- *   celah antar-poligon sehingga dua kecamatan bertetangga dengan kelas yang
- *   sama tetap terbaca sebagai dua wilayah, dan yang berbeda kelas tidak
- *   "menyatu" secara visual.
+ * - Isi poligon memakai ramp QGIS apa adanya (Reds / Blues); lihat RAMP_QGIS
+ *   di layers.js. Garis batas mengikuti outline QGIS, bukan warna permukaan
+ *   tema: kelas teratas hampir sewarna latar, jadi tepinya yang menyatakan
+ *   batas wilayah. Ini juga memberi celah antar-poligon sehingga dua
+ *   kecamatan bertetangga dengan kelas sama tetap terbaca sebagai dua wilayah.
  * - Kecamatan terpilih selalu diangkat ke lapisan teratas (bringToFront) agar
  *   garis tepinya tidak tertutup tetangganya.
  */
@@ -38,11 +39,11 @@ function gaya(feature, { hover = false } = {}) {
   const diredupkan = keluarFilter.has(row.kecamatan);
 
   return {
-    color: terpilih ? token("--color-ink") : token("--color-surface"),
-    weight: terpilih ? 2.5 : hover ? 2.5 : 1.5,
+    color: terpilih ? token("--color-ink") : token("--color-peta-garis"),
+    weight: terpilih ? 2.5 : hover ? 2.5 : 1,
     opacity: diredupkan ? 0.5 : 1,
     fillColor: diredupkan ? token("--color-axis") : warnaUntuk(row, panel),
-    fillOpacity: diredupkan ? 0.25 : hover || terpilih ? 0.95 : 0.82,
+    fillOpacity: diredupkan ? 0.25 : hover || terpilih ? 1 : 0.9,
   };
 }
 

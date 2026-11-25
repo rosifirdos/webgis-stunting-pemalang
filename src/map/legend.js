@@ -1,4 +1,4 @@
-import { panelAktif } from "./layers.js";
+import { panelAktif, warnaKelas, RAMP_QGIS } from "./layers.js";
 
 /**
  * Legenda peta.
@@ -37,8 +37,7 @@ export function gambarLegenda() {
     const li = document.createElement("li");
     li.className = "flex items-center gap-2.5";
 
-    const ramp = getComputedStyle(document.documentElement);
-    jeda(li, ramp.getPropertyValue(`--color-${panel.ramp}-${k.warnaIndeks + 1}`).trim());
+    jeda(li, warnaKelas(panel.nama, k.warnaIndeks + 1));
 
     const teks = document.createElement("span");
     teks.className = "flex min-w-0 flex-1 items-baseline justify-between gap-2";
@@ -61,10 +60,7 @@ export function gambarLegenda() {
 
   if (petaJudul) petaJudul.textContent = panel.judul;
   if (petaBar) {
-    // Gradien rendah->tinggi, lima langkah sama dengan kelas peta.
-    const langkah = [1, 2, 3, 4, 5].map(
-      (i) => `var(--color-${panel.ramp}-${i})`
-    );
-    petaBar.style.background = `linear-gradient(to right, ${langkah.join(", ")})`;
+    // Gradien rendah->tinggi, lima langkah yang sama dengan isi poligon.
+    petaBar.style.background = `linear-gradient(to right, ${RAMP_QGIS[panel.nama].join(", ")})`;
   }
 }
