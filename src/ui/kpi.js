@@ -12,6 +12,9 @@ import { ringkas, prioritasRingkas, angka } from "../data/stats.js";
  * Semuanya diturunkan dari prevalensi stunting; tidak ada faktor penjelas
  * tunggal yang naik ke kartu ringkasan. Hubungan tiap determinan dengan
  * stunting dibahas di panel Info (uji determinan).
+ *
+ * Angka besar di hero memakai rerata prevalensi antar-kecamatan; catatan
+ * di bawahnya menurunkan angka itu ke jumlah balita yang diukur.
  */
 
 const daftarNama = (rows, maks = 3) => {
@@ -28,14 +31,13 @@ export function gambarKpi(rows) {
   const menengah = rows.filter((r) => r.prioritas === "2 Prioritas Menengah");
 
   const hero = document.getElementById("hero-stunting");
-  if (hero) hero.textContent = angka(k["1 Prioritas Utama"]);
+  if (hero) hero.textContent = `${angka(s.rerataStunting, 1)}%`;
 
   const heroCatatan = document.getElementById("hero-catatan");
   if (heroCatatan) {
     heroCatatan.textContent =
-      `Beban kabupaten: rerata prevalensi ${angka(s.rerataStunting, 1)}%, ` +
-      `berbobot ${angka(s.stuntingBerbobot, 1)}% — ${angka(s.totalKasus)} kasus ` +
-      `dari ${angka(s.totalBalita)} balita yang diukur di 14 kecamatan.`;
+      `${angka(s.totalKasus)} dari ${angka(s.totalBalita)} balita yang diukur ` +
+      `tercatat stunting — ${angka(s.stuntingBerbobot, 1)}% secara keseluruhan.`;
   }
 
   const set = (id, teks) => {
