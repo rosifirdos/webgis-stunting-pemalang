@@ -2,37 +2,26 @@ import {
   Chart,
   BarController,
   BarElement,
-  LineController,
-  LineElement,
-  PointElement,
-  ScatterController,
   CategoryScale,
   LinearScale,
   Tooltip,
-  Legend,
 } from "chart.js";
 import { token } from "../tokens.js";
 
 /**
  * Registrasi terpilih (tree-shaking Chart.js v4): hanya controller, elemen,
- * dan skala yang benar-benar dipakai. Tanpa ini, `type: "scatter"` gagal
- * dengan "scatter is not a registered controller".
+ * dan skala yang benar-benar dipakai. Tanpa ini, `type: "bar"` gagal dengan
+ * "bar is not a registered controller".
  *
- * Legend didaftarkan karena grafik batang kini punya dua penanda: batang
- * stunting (seri utama) dan titik sanitasi (pembanding). Grafik lain tetap
- * mematikan legend lewat `options.plugins.legend.display = false`.
+ * Legend tidak didaftarkan: satu-satunya grafik aplikasi (batang) satu seri,
+ * dan judulnya sudah menamai variabel yang digambar.
  */
 Chart.register(
   BarController,
   BarElement,
-  LineController,
-  LineElement,
-  PointElement,
-  ScatterController,
   CategoryScale,
   LinearScale,
-  Tooltip,
-  Legend
+  Tooltip
 );
 
 /** Palet grafik dibaca dari token tema yang sedang aktif. */

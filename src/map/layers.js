@@ -6,22 +6,27 @@ import {
   KELAS_STUNTING,
   KELAS_SANITASI,
   KELAS_KAPASITAS,
-  KATEGORI_KUADRAN,
+  KATEGORI_PRIORITAS,
 } from "../data/classify.js";
 
 /**
  * Warna isi poligon disalin dari proyek QGIS 3.44.16
  * (../output/Pemalang_Stunting_Sanitasi_2024.qgz), bukan dari token tema:
  *   Prevalensi Stunting 2024        -> Reds    5 kelas kuantil
- *   Cakupan Sanitasi Layak 2024     -> Blues   5 kelas kuantil
+ *   Sanitasi layak (determinan)     -> Blues   5 kelas kuantil
  *   Indeks Kapasitas Layanan 2024   -> RdYlGn  5 kelas kuantil
- *   Kuadran prioritas              -> 4 warna kategori (PRD FR-03)
+ *   Tingkat prioritas               -> 4 warna kategori
  * Karena ramp ini tetap di tema terang maupun gelap, satu kelas selalu
  * berwarna sama - tidak ada arti warna yang terbalik saat tema berganti -
  * dan peta di layar membaca sama dengan peta cetak.
  *
- * Grafik (batang, sebar) tetap memakai token --color-stunting-* /
- * --color-sanitasi-*, yang langkahnya dipilih ulang untuk tema gelap.
+ * Sanitasi layak adalah layer opsional: salah satu dari 95 determinan yang
+ * diuji, bukan variabel kedua yang setara stunting. Strukturnya sama dengan
+ * variabel determinan lain - kelas kuantilnya sendiri, tanpa peran khusus
+ * dalam prioritas maupun narasi.
+ *
+ * Grafik batang tetap memakai token --color-stunting-*, yang langkahnya
+ * dipilih ulang untuk tema gelap.
  */
 export const RAMP_QGIS = {
   stunting: ["#fff5f0", "#fcbea5", "#fb7050", "#d32020", "#67000d"],
@@ -39,7 +44,7 @@ export function warnaKelas(nama, tingkat) {
 /**
  * Legenda memakai urutan sesuai tampilan peta. Untuk kelas kuantil nilainya
  * disimpan rendah->tinggi lalu dibalik agar nilai besar di atas; untuk
- * kategori, urutan kuadran 1..4 sudah bermakna dan tidak dibalik.
+ * kategori, urutan tingkat 1..4 sudah bermakna dan tidak dibalik.
  */
 const legenda = (daftar) =>
   [...daftar].reverse().map((k) => ({
@@ -48,7 +53,7 @@ const legenda = (daftar) =>
     warnaIndeks: k.tingkat - 1,
   }));
 
-const KELOMPOK_KUADRAN = KATEGORI_KUADRAN.map((k) => ({
+const KELOMPOK_PRIORITAS = KATEGORI_PRIORITAS.map((k) => ({
   label: k.label,
   ket: k.ket,
   warna: k.warna,
@@ -68,22 +73,22 @@ export const PANEL = {
   sanitasi: {
     nama: "sanitasi",
     jenis: "kuantil",
-    judul: "Faktor penjelas: sanitasi layak",
+    judul: "Sanitasi layak (determinan)",
     satuan: "%",
     field: "sanitasi_pct",
     kelas: legenda(KELAS_SANITASI),
     catatan:
-      "Faktor penjelas, bukan variabel setara stunting. Lima kelas kuantil dengan warna Blues QGIS. Nilai di atas 100% (Warungpring 111,77%) tetap di kelas 5 dan ditandai di luar skala, tidak dikoreksi.",
+      "Layer opsional: salah satu dari 95 determinan yang diuji terhadap stunting (hasil lengkap di panel Info). Lima kelas kuantil dengan warna Blues QGIS. Nilai di atas 100% tetap di kelas 5 dan ditandai di luar skala, tidak dikoreksi.",
   },
   prioritas: {
     nama: "prioritas",
     jenis: "kategori",
-    judul: "Kuadran Prioritas Stunting",
+    judul: "Tingkat Prioritas Intervensi",
     satuan: "",
-    field: "kuadran",
-    kelas: KELOMPOK_KUADRAN,
+    field: "prioritas",
+    kelas: KELOMPOK_PRIORITAS,
     catatan:
-      "Kuadran 2×2 dari median stunting 8,60% dan median sanitasi 71,33%. Kuadran 2 (Determinan Lain) adalah pesan kunci: sanitasi baik tidak menjamin stunting rendah.",
+      "Empat tingkat yang diturunkan langsung dari kelas prevalensi stunting, bukan dari faktor penjelas. Prioritas Utama = kelas 5; Relatif Rendah menggabungkan kelas 1–2.",
   },
   kapasitas: {
     nama: "kapasitas",
@@ -112,12 +117,12 @@ function tingkatKelas(row, panel) {
 /**
  * Warna isi polygon untuk sebuah kecamatan pada layer aktif.
  * Nilai di atas 100% (sanitasi) tetap memakai langkah teratas, lalu ditandai
- * pada popup/legenda. Panel kategori memakai warna kuadrannya sendiri.
+ * pada popup/legenda. Panel kategori memakai warna tingkat prioritasnya.
  */
 export function warnaUntuk(row, panel = panelAktif()) {
   if (panel.jenis === "kategori") {
     return (
-      KATEGORI_KUADRAN.find((k) => k.nilai === row.kuadran)?.warna ??
+      KATEGORI_PRIORITAS.find((k) => k.nilai === row.prioritas)?.warna ??
       "#9ca3af"
     );
   }
@@ -129,7 +134,7 @@ export function nilaiTeks(row, panel = panelAktif()) {
   const v = row[panel.field];
 
   if (panel.nama === "prioritas") {
-    return { teks: row.kuadran, diLuarSkala: false };
+    return { teks: row.prioritas, diLuarSkala: false };
   }
 
   if (panel.nama === "kapasitas") {

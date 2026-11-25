@@ -1,8 +1,9 @@
 # Web GIS Stunting Kabupaten Pemalang 2024
 
 Web GIS dan dashboard analitik untuk prevalensi balita stunting di 14
-kecamatan Kabupaten Pemalang. **Stunting adalah fokus studi; sanitasi dipakai
-sebagai faktor penjelas**, bukan penyebab. Angka bersumber dari **Profil
+kecamatan Kabupaten Pemalang. **Stunting adalah satu-satunya outcome yang
+dipetakan; sanitasi adalah satu dari 95 determinan yang diuji sebagai faktor
+penjelas**, bukan variabel kedua yang setara. Angka bersumber dari **Profil
 Kesehatan Kabupaten Pemalang 2024** (Dinas Kesehatan Kabupaten Pemalang);
 batas administrasi dari **LapakGIS** (WGS84 / EPSG:4326).
 
@@ -63,18 +64,17 @@ webgis-stunting-pemalang/
 │  ├─ tokens.js                  baca token warna dari CSS, simpan preferensi tema
 │  ├─ data/
 │  │  ├─ load.js                 fetch + cache GeoJSON
-│  │  ├─ classify.js             kelas kuantil 5 + kuadran + indeks kapasitas
+│  │  ├─ classify.js             kelas kuantil 5 + tingkat prioritas + indeks kapasitas
 │  │  └─ stats.js                KPI, korelasi Pearson, peringkat
 │  ├─ map/
 │  │  ├─ init.js                 peta, basemap, kontrol
-│  │  ├─ layers.js               definisi 4 layer + ramp QGIS (Reds/Blues/RdYlGn/kuadran)
+│  │  ├─ layers.js               definisi 4 layer + ramp QGIS (Reds/Blues/RdYlGn/prioritas)
 │  │  ├─ choropleth.js           gaya polygon, tooltip, popup
 │  │  ├─ legend.js               legenda dinamis
 │  │  └─ interactions.js         hover, klik, sinkron tabel
 │  ├─ charts/
 │  │  ├─ base.js                 registrasi Chart.js + pembacaan tema
-│  │  ├─ bar.js                  peringkat stunting (horizontal, menurun)
-│  │  └─ scatter.js              sanitasi vs stunting + anotasi r
+│  │  └─ bar.js                  peringkat stunting (horizontal, menurun)
 │  ├─ ui/
 │  │  ├─ tabs.js                 navigasi Home / Peta / Info (hash)
 │  │  ├─ kpi.js                  kartu ringkasan
@@ -94,8 +94,7 @@ Tangkapan layar desktop dan mobile untuk laporan ada di `dokumentasi/`.
 
 **Prinsip:** `src/state/store.js` adalah satu-satunya sumber kebenaran (layer
 aktif, kecamatan terpilih, filter). Peta dan grafik berlangganan store yang
-sama, sehingga fitur split map (FR-MAP-05, ditunda ke v1.1) cukup menambahkan
-instance peta kedua tanpa refactor.
+sama, sehingga perubahan tampilan tidak butuh refactor lintas modul.
 
 ---
 
@@ -219,8 +218,9 @@ Ketentuan yang dipegang:
 Panel **Peta** memakai **peta Leaflet interaktif** (`src/map/*`) yang digambar
 dari `public/data/kecamatan.geojson`: bisa digeser, di-zoom, berganti layer,
 berganti basemap, dan diklik per kecamatan. Empat layer tersedia di kanvas yang
-sama: **prevalensi stunting** (fokus studi), **faktor penjelas sanitasi layak**,
-**kuadran prioritas** (4 warna kategori), dan **indeks kapasitas layanan**.
+sama: **prevalensi stunting** (fokus studi), **sanitasi layak** (determinan
+opsional), **tingkat prioritas** (4 warna kategori), dan **indeks kapasitas
+layanan**.
 Klik satu poligon menyorot baris tabel, grafik, dan kartu "Kecamatan terpilih".
 Peta ini memakai 5 kelas Quantile dan ramp warna yang sama dengan QGIS.
 
@@ -246,28 +246,26 @@ yang tidak konsisten antar-baris puskesmas pada Tabel 81 mentah. Nilai
 
 - skala warna diklasifikasi pada rentang tetap 0–100%, sehingga nilai ini jatuh
   di luar kelas teratas dan terlihat menonjol;
-- diberi penanda `*` pada tooltip, popup, dan tabel, plus garis putus-putus
-  "batas 100%" pada scatter;
+- diberi penanda `*` pada tooltip, popup, dan layer peta sanitasi;
 - dicatat eksplisit di halaman Info.
 
-**Korelasi lemah, dan itu ditampilkan sebagai temuan.** Korelasi sanitasi ↔
-stunting hanya r = −0,22 (R² = 0,05; p = 0,443; n = 14). Nilai r dan R²
-ditampilkan apa adanya dengan keterangan netral: sanitasi bukan satu-satunya
-faktor penentu stunting pada tingkat kecamatan. Menyembunyikan angka yang lemah
-akan menyesatkan. Uji terhadap 95 variabel determinan juga tidak menemukan satu
-pun yang signifikan setelah koreksi Benjamini–Hochberg; karena itu seluruh
-analisis diberi label eksploratif, dan hasil regresi dilaporkan sebagai nominal.
-Rinciannya ada di panel Info.
+**Tidak ada determinan yang signifikan, dan itu ditampilkan sebagai temuan.**
+Uji terhadap 95 variabel determinan — sanitasi di antaranya, diperlakukan sama
+seperti variabel lain — tidak menemukan satu pun yang signifikan setelah
+koreksi Benjamini–Hochberg. Karena itu seluruh analisis diberi label
+eksploratif, hasil regresi dilaporkan sebagai nominal, dan tidak ada grafik
+korelasi dua-variabel di dashboard: hubungan tiap determinan dibaca di panel
+Info, bukan diangkat menjadi narasi tunggal. Rinciannya ada di panel Info.
 
 **Peta memakai warna QGIS apa adanya; grafik memakai ramp tema.** Isi poligon
 disalin dari proyek QGIS — *Reds* lima kelas untuk stunting dan *Blues* lima
 kelas untuk sanitasi — dengan garis batas #232323 seperti outline layout cetak.
 Ramp ini **tidak ikut tema**: satu kelas selalu berwarna sama di terang dan
 gelap, sehingga arti warnanya tidak terbalik saat tema berganti dan peta di
-layar terbaca sama dengan peta cetak. Grafik batang dan sebar tetap memakai
-token `--color-stunting-*` / `--color-sanitasi-*`, yang langkahnya dipilih ulang
-untuk latar gelap karena grafik duduk di atas permukaan tema, bukan di atas
-citra. Perbedaan ini dicatat di halaman Info.
+layar terbaca sama dengan peta cetak. Grafik batang memakai token
+`--color-stunting-*`, yang langkahnya dipilih ulang untuk latar gelap karena
+grafik duduk di atas permukaan tema, bukan di atas citra. Perbedaan ini
+dicatat di halaman Info.
 
 **Kelas ramp harus selalu teremit, jadi `@theme static` — bukan `@theme`.**
 Tailwind v4 membuang variabel `@theme` yang tidak terlihat "dipakai", dan
@@ -292,7 +290,7 @@ kembalikan ke `@theme` biasa; lihat komentar di `src/styles.css`.
   (luminansi relatif WCAG, sRGB→linear). Rentang hasilnya 4,78:1–19,17:1
   (terang) dan 4,85:1–16,90:1 (gelap); tidak ada satu pun di bawah ambang.
 - Warna yang dipakai sebagai **teks** tidak meminjam langkah ramp yang dipilih
-  sebagai isian peta. `--color-sanitasi-2` (titik scatter, poligon) hanya
+  sebagai isian peta. `--color-sanitasi-2` (poligon layer sanitasi) hanya
   4,11–4,22:1 bila dipakai sebagai teks 12px — di bawah ambang AA — jadi tautan
   memakai token tersendiri `--color-link` yang langkahnya dipilih dengan
   mengukur (4,78:1 di kanvas, 4,91:1 di permukaan). Judul galat juga memakai

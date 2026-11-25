@@ -36,12 +36,6 @@ import {
 } from "./map/interactions.js";
 import { fontDashboard, palet } from "./charts/base.js";
 import { gambarBar, tabelBar, perbaruiTemaBar, hapusBar } from "./charts/bar.js";
-import {
-  gambarScatter,
-  tabelScatter,
-  perbaruiTemaScatter,
-  hapusScatter,
-} from "./charts/scatter.js";
 
 /* --------------------------------------------------------------------------
    Ikon & label tombol tema
@@ -124,10 +118,9 @@ async function mulai() {
     const semua = rows;
     let rowsTampil = terapkanFilter(semua);
 
-    /* --- tabel alternatif untuk kedua grafik ------------------------------ */
+    /* --- tabel alternatif untuk grafik batang ------------------------------ */
     const isiTabel = {
       bar: () => tabelBar(rowsTampil),
-      scatter: () => tabelScatter(rowsTampil),
     };
     initToggleTabel(isiTabel);
 
@@ -191,9 +184,6 @@ async function mulai() {
         gambarBar(rowsTampil, {
           onPilih: (nama) => pilihKecamatan(nama, { dari: "grafik" }),
         });
-        gambarScatter(rowsTampil, {
-          onPilih: (nama) => pilihKecamatan(nama, { dari: "grafik" }),
-        });
         segarkanTabelGrafik(isiTabel);
 
         // Peta tetap memuat 14 kecamatan sebagai konteks keruangan; yang
@@ -243,7 +233,6 @@ async function mulai() {
       gambarUlang();
       gambarLegenda();
       perbaruiTemaBar();
-      perbaruiTemaScatter();
       segarkanBasemap({ gelap });
       if (!document.getElementById("panel-peta")?.hidden) ukuranUlang();
     });
@@ -258,7 +247,6 @@ async function mulai() {
 // Bersihkan instance grafik saat halaman ditinggalkan.
 window.addEventListener("pagehide", () => {
   hapusBar();
-  hapusScatter();
 });
 
 if (document.readyState === "loading") {

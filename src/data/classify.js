@@ -1,29 +1,31 @@
 /**
- * Klasifikasi 5 kelas kuantil + kuadran prioritas.
+ * Klasifikasi 5 kelas kuantil + tingkat prioritas intervensi.
  *
- * Semua break, median, dan label kelas tinggal di satu modul ini supaya peta,
+ * Semua break dan label kelas tinggal di satu modul ini supaya peta,
  * legenda, tabel, grafik, dan unduhan tidak pernah menunjuk kelas yang
- * berbeda. Nilainya HARUS identik dengan PRD v2.0 §2.2 dan §2.3 - break yang
- * sama dipakai ekspor QGIS, sehingga warna di web dan di peta cetak cocok.
+ * berbeda. Nilainya HARUS identik dengan break QGIS - break yang sama dipakai
+ * ekspor QGIS, sehingga warna di web dan di peta cetak cocok.
  *
  * Kelas dikembalikan sebagai ANGKA 1..5, bukan string. Ini disengaja: warna
  * ramp (--color-stunting-1..5) memakai angka yang sama sebagai indeks, jadi
  * tidak ada pemetaan nama->warna yang bisa melenceng.
  *
  * Label tetap berupa teks ("Kelas 1 — sangat rendah" dst.) agar warna bukan
- * satu-satunya pembeda kelas (aksesibilitas, PRD §8.4).
+ * satu-satunya pembeda kelas (aksesibilitas).
+ *
+ * Prioritas intervensi murni mengikuti beban prevalensi stunting per
+ * kecamatan. Tidak ada faktor penjelas tunggal - sanitasi maupun lainnya -
+ * yang ikut menentukan kategori ini; hubungan tiap determinan dengan
+ * stunting dibahas terpisah di panel Info (uji determinan).
  */
 
 export const BREAK_STUNTING = [5.294, 7.396, 9.132, 12.176];
-export const BREAK_SANITASI = [55.506, 64.24, 71.46, 76.55];
 /**
  * Break Indeks Kapasitas Layanan, diambil dari renderer QGIS (Quantile,
  * 5 kelas). Enam angka di README (`-0,5877 / ... / 0,5869`) adalah min +
  * empat break + max; empat break itulah yang dipakai di sini.
  */
 export const BREAK_KAPASITAS = [-0.2237, -0.1262, 0.0641, 0.2566];
-export const MEDIAN_STUNTING = 8.6;
-export const MEDIAN_SANITASI = 71.33;
 
 /** Format angka gaya Indonesia dengan dua desimal (mis. 5.294 -> "5,29"). */
 const desimal = (v) =>
@@ -34,8 +36,7 @@ const desimal = (v) =>
 
 /**
  * Kelas 1..5 dari daftar break.
- * Nilai di bawah break pertama masuk kelas 1, di atas break terakhir kelas 5 -
- * termasuk nilai sanitasi di atas 100% (mis. Warungpring 111,77%).
+ * Nilai di bawah break pertama masuk kelas 1, di atas break terakhir kelas 5.
  */
 function kelasDariBreak(nilai, breaks) {
   const v = Number(nilai);
@@ -50,12 +51,20 @@ export function kelasStunting(pct) {
   return kelasDariBreak(pct, BREAK_STUNTING);
 }
 
-export function kelasSanitasi(pct) {
-  return kelasDariBreak(pct, BREAK_SANITASI);
-}
-
 export function kelasKapasitas(idx) {
   return kelasDariBreak(idx, BREAK_KAPASITAS);
+}
+
+/**
+ * Sanitasi layak diperlakukan persis seperti variabel determinan lain:
+ * kelas kuantilnya sendiri (break sama dengan renderer QGIS, ramp Blues),
+ * dipakai hanya oleh layer peta opsional - bukan oleh tingkat prioritas,
+ * klasifikasi apa pun yang menaikkan statusnya, maupun narasi utama.
+ */
+export const BREAK_SANITASI = [55.506, 64.24, 71.46, 76.55];
+
+export function kelasSanitasi(pct) {
+  return kelasDariBreak(pct, BREAK_SANITASI);
 }
 
 /** Teks rentang tiap kelas, dibangun dari break agar tidak bisa melenceng. */
@@ -66,16 +75,10 @@ function rentang(i, breaks) {
 }
 
 /** Rentang indeks (bukan persen); nilai kapasitas bisa negatif. */
-const bertanda = (v) =>
-  Number(v).toLocaleString("id-ID", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
-
 function rentangIndeks(i, breaks) {
-  if (i === 0) return `< ${bertanda(breaks[0])}`;
-  if (i === breaks.length) return `≥ ${bertanda(breaks[breaks.length - 1])}`;
-  return `${bertanda(breaks[i - 1])} – ${bertanda(breaks[i])}`;
+  if (i === 0) return `< ${desimal(breaks[0])}`;
+  if (i === breaks.length) return `≥ ${desimal(breaks[breaks.length - 1])}`;
+  return `${desimal(breaks[i - 1])} – ${desimal(breaks[i])}`;
 }
 
 const LABEL_STUNTING = [
@@ -86,37 +89,6 @@ const LABEL_STUNTING = [
   "Kelas 5 — sangat tinggi",
 ];
 
-/**
- * Sanitasi memakai kata yang sama untuk capaian, bukan kerentanan: kelas 1
- * berarti cakupan sangat rendah, kelas 5 cakupan sangat tinggi.
- */
-const LABEL_SANITASI = [
-  "Kelas 1 — sangat rendah",
-  "Kelas 2 — rendah",
-  "Kelas 3 — sedang",
-  "Kelas 4 — tinggi",
-  "Kelas 5 — sangat tinggi",
-];
-
-function susunKelas(labels, breaks, tambahanKelas5 = {}, rentangFn = rentang) {
-  return labels.map((label, i) => ({
-    tingkat: i + 1,
-    label,
-    min: i === 0 ? null : breaks[i - 1],
-    max: i === breaks.length ? null : breaks[i],
-    keterangan: rentangFn(i, breaks),
-    ...(i === labels.length - 1 ? tambahanKelas5 : {}),
-  }));
-}
-
-export const KELAS_STUNTING = susunKelas(LABEL_STUNTING, BREAK_STUNTING);
-
-export const KELAS_SANITASI = susunKelas(LABEL_SANITASI, BREAK_SANITASI, {
-  // Kelas teratas sanitasi memuat nilai > 100% (Warungpring 111,77%).
-  // Penanda ini yang membuat UI bisa menulis "di luar skala" tanpa menebak.
-  diLuarSkala: true,
-});
-
 const LABEL_KAPASITAS = [
   "Kelas 1 — kapasitas paling rendah",
   "Kelas 2 — rendah",
@@ -125,6 +97,18 @@ const LABEL_KAPASITAS = [
   "Kelas 5 — kapasitas paling tinggi",
 ];
 
+function susunKelas(labels, breaks, rentangFn = rentang) {
+  return labels.map((label, i) => ({
+    tingkat: i + 1,
+    label,
+    min: i === 0 ? null : breaks[i - 1],
+    max: i === breaks.length ? null : breaks[i],
+    keterangan: rentangFn(i, breaks),
+  }));
+}
+
+export const KELAS_STUNTING = susunKelas(LABEL_STUNTING, BREAK_STUNTING);
+
 /**
  * Indeks Kapasitas Layanan: nilai TINGGI berarti kapasitas layanan lebih baik.
  * Ini bukan indeks risiko. Lihat catatan efek deteksi di panel Info.
@@ -132,44 +116,18 @@ const LABEL_KAPASITAS = [
 export const KELAS_KAPASITAS = susunKelas(
   LABEL_KAPASITAS,
   BREAK_KAPASITAS,
-  {},
   rentangIndeks
 );
 
-/**
- * Kuadran prioritas sebagai kategori peta. Urutan sama dengan definisi
- * median split; `warna` persis PRD §FR-03.
- */
-export const KATEGORI_KUADRAN = [
-  {
-    nilai: "1 Prioritas Utama",
-    label: "Prioritas Utama (kuadran 1)",
-    singkat: "Prioritas Utama",
-    ket: "stunting ≥ 8,60% · sanitasi < 71,33%",
-    warna: "#b2182b",
-  },
-  {
-    nilai: "2 Determinan Lain",
-    label: "Determinan Lain (kuadran 2)",
-    singkat: "Determinan Lain",
-    ket: "stunting ≥ 8,60% · sanitasi ≥ 71,33%",
-    warna: "#f4a582",
-  },
-  {
-    nilai: "3 Waspada",
-    label: "Waspada (kuadran 3)",
-    singkat: "Waspada",
-    ket: "stunting < 8,60% · sanitasi < 71,33%",
-    warna: "#92c5de",
-  },
-  {
-    nilai: "4 Relatif Aman",
-    label: "Relatif Aman (kuadran 4)",
-    singkat: "Relatif Aman",
-    ket: "stunting < 8,60% · sanitasi ≥ 71,33%",
-    warna: "#2166ac",
-  },
+const LABEL_SANITASI = [
+  "Kelas 1 — terendah",
+  "Kelas 2 — rendah",
+  "Kelas 3 — sedang",
+  "Kelas 4 — tinggi",
+  "Kelas 5 — tertinggi",
 ];
+
+export const KELAS_SANITASI = susunKelas(LABEL_SANITASI, BREAK_SANITASI);
 
 /** Label tanpa awalan "Kelas n — " untuk ruang sempit (popup, tooltip). */
 export function labelSingkat(tingkat, daftar = KELAS_STUNTING) {
@@ -178,27 +136,56 @@ export function labelSingkat(tingkat, daftar = KELAS_STUNTING) {
 }
 
 /**
- * Kuadran prioritas dari median split (PRD §2.3).
- * Memakai sanitasi_pct (sanitasi layak), bukan sanitasi_aman_pct.
+ * Tingkat prioritas intervensi, murni dari kelas prevalensi stunting.
+ * Empat kategori agar tetap ringkas di legenda; kelas 1-2 digabung karena
+ * keduanya sama-sama di bawah rerata kabupaten.
  */
-export function kuadran(row) {
-  const stunting = Number(row?.stunting_pct);
-  const sanitasi = Number(row?.sanitasi_pct);
-  const stuntingTinggi = stunting >= MEDIAN_STUNTING;
-  const sanitasiBaik = sanitasi >= MEDIAN_SANITASI;
+export const KATEGORI_PRIORITAS = [
+  {
+    nilai: "1 Prioritas Utama",
+    label: "Prioritas Utama",
+    singkat: "Prioritas Utama",
+    ket: "prevalensi ≥ 12,18% (kelas 5)",
+    kelas: [5],
+    warna: "#b2182b",
+  },
+  {
+    nilai: "2 Prioritas Menengah",
+    label: "Prioritas Menengah",
+    singkat: "Prioritas Menengah",
+    ket: "9,13 – 12,18% (kelas 4)",
+    kelas: [4],
+    warna: "#f4a582",
+  },
+  {
+    nilai: "3 Pemantauan",
+    label: "Pemantauan",
+    singkat: "Pemantauan",
+    ket: "7,40 – 9,13% (kelas 3)",
+    kelas: [3],
+    warna: "#92c5de",
+  },
+  {
+    nilai: "4 Relatif Rendah",
+    label: "Relatif Rendah",
+    singkat: "Relatif Rendah",
+    ket: "< 7,40% (kelas 1–2)",
+    kelas: [1, 2],
+    warna: "#2166ac",
+  },
+];
 
-  if (stuntingTinggi && !sanitasiBaik) return "1 Prioritas Utama";
-  if (stuntingTinggi && sanitasiBaik) return "2 Determinan Lain";
-  if (!stuntingTinggi && !sanitasiBaik) return "3 Waspada";
-  return "4 Relatif Aman";
+/** Tingkat prioritas sebuah kecamatan, dari kelas prevalensinya. */
+export function prioritas(row) {
+  const kelas = Number(row?.kelas ?? kelasStunting(row?.stunting_pct));
+  const kategori = KATEGORI_PRIORITAS.find((k) => k.kelas.includes(kelas));
+  return kategori?.nilai ?? KATEGORI_PRIORITAS[KATEGORI_PRIORITAS.length - 1].nilai;
 }
 
-/** Kalimat alasan kuadran, mis. "stunting 16,69% ≥ median 8,60%; ...". */
-export function alasanKuadran(row) {
-  const stunting = Number(row?.stunting_pct);
-  const sanitasi = Number(row?.sanitasi_pct);
-  return (
-    `stunting ${desimal(stunting)}% ${stunting >= MEDIAN_STUNTING ? "≥" : "<"} median ${desimal(MEDIAN_STUNTING)}%; ` +
-    `sanitasi ${desimal(sanitasi)}% ${sanitasi >= MEDIAN_SANITASI ? "≥" : "<"} median ${desimal(MEDIAN_SANITASI)}`
-  );
+/** Kalimat alasan prioritas, mis. "prevalensi 16,69% ≥ 12,18% (kelas 5)". */
+export function alasanPrioritas(row) {
+  const v = Number(row?.stunting_pct);
+  const kelas = kelasStunting(v);
+  const kategori = KATEGORI_PRIORITAS.find((k) => k.kelas.includes(kelas));
+  return `prevalensi ${desimal(v)}% — ${kategori?.ket ?? `kelas ${kelas}`}`;
 }

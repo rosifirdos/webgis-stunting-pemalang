@@ -30,7 +30,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { bacaCsv, kunci } from "./lib/csv.mjs";
-import { kuadran } from "../src/data/classify.js";
+import { prioritas } from "../src/data/classify.js";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 // Berkas sumber mentah (Shapefile/DBF dari QGIS) tinggal di folder induk repo,
@@ -237,7 +237,7 @@ const FIELDS = [
   ["asi_eksklusif_pct", "asi_eksklusif_pct", "number", "csv"],
   ["catin_anemia_pct", "catin_anemia_pct", "number", "csv"],
   ["balita_ds_pct", "balita_ds_pct", "number", "csv"],
-  ["kuadran", null, "derived", "-"],
+  ["prioritas", null, "derived", "-"],
   ["idx_layanan", null, "derived", "-"],
   // Field lama yang masih dipakai tabel/peta jelajah (tidak ada di §6.1).
   ["kk_sbs_pct", "pct_sbs", "number", "dbf"],
@@ -282,8 +282,9 @@ function buildProperties(row, csvRow, idxLayanan) {
     }
   }
 
-  // Turunan: kuadran median split + indeks kapasitas layanan (4 desimal).
-  props.kuadran = kuadran(props);
+  // Turunan: tingkat prioritas (dari kelas prevalensi) + indeks kapasitas
+  // layanan (4 desimal).
+  props.prioritas = prioritas(props);
   props.idx_layanan = idxLayanan;
   return props;
 }
@@ -474,18 +475,18 @@ console.log(`  ${OUT_GEOJSON}  ${kb(OUT_GEOJSON)}`);
 console.log(`  ${OUT_CSV}  ${kb(OUT_CSV)}`);
 console.log("");
 
-const hitungKuadran = {};
+const hitungPrioritas = {};
 for (const f of features) {
-  const q = f.properties.kuadran;
-  hitungKuadran[q] = (hitungKuadran[q] ?? 0) + 1;
+  const q = f.properties.prioritas;
+  hitungPrioritas[q] = (hitungPrioritas[q] ?? 0) + 1;
 }
-console.log("Kuadran prioritas (median split):");
-for (const [q, n] of Object.entries(hitungKuadran).sort()) {
-  console.log(`  ${q.padEnd(20)} ${n}`);
+console.log("Tingkat prioritas (dari kelas prevalensi):");
+for (const [q, n] of Object.entries(hitungPrioritas).sort()) {
+  console.log(`  ${q.padEnd(22)} ${n}`);
 }
 console.log("");
 console.log("Ringkasan nilai (urut stunting menurun):");
-console.log("  kecamatan        stunting%   sanitasi%   kuadran              idx");
+console.log("  kecamatan        stunting%   sanitasi%   prioritas            idx");
 for (const f of [...features].sort(
   (a, b) => b.properties.stunting_pct - a.properties.stunting_pct
 )) {
@@ -493,7 +494,7 @@ for (const f of [...features].sort(
   console.log(
     `  ${p.kecamatan.padEnd(16)} ${String(p.stunting_pct).padStart(7)} ${String(
       p.sanitasi_pct
-    ).padStart(11)}   ${p.kuadran.padEnd(20)} ${String(p.idx_layanan).padStart(7)}`
+    ).padStart(11)}   ${p.prioritas.padEnd(22)} ${String(p.idx_layanan).padStart(7)}`
   );
 }
 

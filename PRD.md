@@ -3,12 +3,43 @@
 | | |
 |---|---|
 | **Produk** | Web GIS Stunting Kabupaten Pemalang 2024 |
-| **Versi dokumen** | 2.0 (revisi atas PRD v1 di `../PRD.md`) |
+| **Versi dokumen** | 2.1 (amandemen atas v2.0; revisi atas PRD v1 di `../PRD.md`) |
 | **Status** | Disetujui untuk implementasi |
 | **Tanggal** | 25 November 2026 |
 | **Pemilik** | Awanda Rosi Firdaus (NPM 24670105) |
 | **Lokasi kode** | `webgis-stunting-pemalang/` |
 | **Sumber analisis** | `output/Pemalang_Stunting_Sanitasi_2024_join.gpkg`, QGIS 3.44.16 |
+
+---
+
+## Amandemen v2.1 — sanitasi = variabel biasa (25 November 2026)
+
+Setelah v2.0 diimplementasikan, sanitasi masih mendapat posisi istimewa:
+ia menentukan kuadran 2×2, punya diagram sebar sendiri, dan menjadi titik
+pembanding di grafik batang. Amandemen ini menurunkannya sepenuhnya menjadi
+**satu dari 95 determinan**. Butir yang mengubah keputusan v2.0:
+
+1. **Prioritas intervensi tidak lagi kuadran 2×2 median.** Kuadran diganti
+   **empat tingkat prioritas** yang diturunkan langsung dari kelas prevalensi
+   stunting: Prioritas Utama (kelas 5), Prioritas Menengah (kelas 4),
+   Pemantauan (kelas 3), Relatif Rendah (kelas 1–2). Field data `kuadran`
+   diganti `prioritas`.
+2. **Diagram sebar sanitasi–stunting dihapus**, termasuk kotak korelasinya.
+   Hubungan tiap determinan dibaca di panel Info (95 uji + FDR), bukan
+   diangkat menjadi grafik tunggal.
+3. **Titik pembanding sanitasi di grafik batang dihapus**; grafik batang
+   kembali satu seri (stunting).
+4. **Layer peta sanitasi tetap ada** sebagai layer opsional berlabel
+   "determinan", dengan kelas kuantilnya sendiri (Blues QGIS).
+5. **Tabel data Home tidak lagi mengkolomkan sanitasi**; nilai tetap tersedia
+   di unduhan CSV/GeoJSON dan di layer peta.
+6. Gambar lampiran QGIS **tidak disematkan di halaman** (Home maupun tab Peta);
+   berkas PNG tetap disimpan sebagai lampiran cetak laporan.
+
+Butir PRD v2.0 di bawah yang bertentangan dengan daftar ini (§2.3 kuadran
+median split, FR-03 kuadran 2×2, FR-09 scatter & pembanding batang, contoh
+UI "4 KPI") **digantikan oleh amandemen ini**; teks aslinya dipertahankan
+sebagai riwayat keputusan.
 
 ---
 

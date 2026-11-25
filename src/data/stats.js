@@ -1,8 +1,9 @@
 import {
   kelasStunting,
   kelasSanitasi,
-  kuadran,
-  alasanKuadran,
+  prioritas,
+  alasanPrioritas,
+  KATEGORI_PRIORITAS,
 } from "./classify.js";
 
 /**
@@ -19,9 +20,11 @@ export function siapkanBaris(features) {
       ...p,
       // Angka 1..5, dipakai langsung sebagai indeks ramp warna.
       kelas: kelasStunting(p.stunting_pct),
+      // Sanitasi hanya pelengkap data; kelasnya dipakai layer peta opsional.
       kelasSanitasi: kelasSanitasi(p.sanitasi_pct),
-      kuadran: kuadran(p),
-      alasanKuadran: alasanKuadran(p),
+      // Tingkat prioritas murni dari prevalensi stunting (lihat classify.js).
+      prioritas: prioritas(p),
+      alasanPrioritas: alasanPrioritas(p),
       // Indeks Kapasitas Layanan dihitung di pipeline (QGIS & prepare-data).
       // Fallback 0 hanya untuk GeoJSON lama yang belum punya field ini.
       idx_layanan: Number.isFinite(idx) ? idx : 0,
@@ -150,57 +153,29 @@ export function pValue(r, n) {
   return Math.min(1, Math.max(0, p));
 }
 
-/** Jumlah kecamatan per kuadran, selalu memuat keempat kunci. */
-export function kuadranRingkas(rows) {
-  const hasil = {
-    "1 Prioritas Utama": 0,
-    "2 Determinan Lain": 0,
-    "3 Waspada": 0,
-    "4 Relatif Aman": 0,
-  };
+/** Jumlah kecamatan per tingkat prioritas, selalu memuat keempat kunci. */
+export function prioritasRingkas(rows) {
+  const hasil = {};
+  for (const k of KATEGORI_PRIORITAS) hasil[k.nilai] = 0;
   for (const r of rows) {
-    if (r.kuadran in hasil) hasil[r.kuadran] += 1;
+    if (r.prioritas in hasil) hasil[r.prioritas] += 1;
   }
   return hasil;
 }
 
-/** Tafsir kekuatan korelasi, dipakai apa adanya di antarmuka. */
-export function tafsirKorelasi(r) {
-  const a = Math.abs(r);
-  const arah = r < 0 ? "negatif" : "positif";
-  if (a < 0.2) return `korelasi ${arah} sangat lemah`;
-  if (a < 0.4) return `korelasi ${arah} lemah`;
-  if (a < 0.6) return `korelasi ${arah} sedang`;
-  if (a < 0.8) return `korelasi ${arah} kuat`;
-  return `korelasi ${arah} sangat kuat`;
-}
-
 export function ringkas(rows) {
   const stunting = rows.map((r) => r.stunting_pct);
-  const sanitasi = rows.map((r) => r.sanitasi_pct);
   const maksStunting = rows.reduce((a, b) =>
     b.stunting_pct > a.stunting_pct ? b : a
   );
-  const minSanitasi = rows.reduce((a, b) =>
-    b.sanitasi_pct < a.sanitasi_pct ? b : a
-  );
-
-  const r = pearson(rows, "sanitasi_pct", "stunting_pct");
 
   return {
     rerataStunting: rata(stunting),
-    rerataSanitasi: rata(sanitasi),
     stuntingBerbobot: rerataBerbobot(rows, "_kasus", "_diukur"),
-    sanitasiBerbobot: rerataBerbobot(rows, "sanitasi_jml", "jumlah_kk"),
     maksStunting,
-    minSanitasi,
-    r,
-    r2: r * r,
-    p: pValue(r, rows.length),
     totalKasus: rows.reduce((n, x) => n + x.stunting_jml, 0),
     totalBalita: rows.reduce((n, x) => n + x.balita_ukur, 0),
     totalKk: rows.reduce((n, x) => n + x.jumlah_kk, 0),
-    totalSanitasi: rows.reduce((n, x) => n + x.sanitasi_jml, 0),
     n: rows.length,
   };
 }

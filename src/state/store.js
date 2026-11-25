@@ -1,7 +1,7 @@
 /**
  * Satu sumber kebenaran untuk state UI.
- * Semua modul (tabel, grafik, peta, KPI) berlangganan store yang sama, sehingga
- * penambahan peta kedua (FR-MAP-05 split map) nanti tidak butuh refactor.
+ * Semua modul (tabel, grafik, peta, KPI) berlangganan store yang sama,
+ * sehingga perubahan tampilan tidak butuh refactor lintas modul.
  */
 const state = {
   layer: "stunting", // layer peta aktif

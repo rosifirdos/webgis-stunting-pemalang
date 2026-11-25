@@ -6,7 +6,6 @@ import {
   labelSingkat,
   kelasKapasitas,
   KELAS_STUNTING,
-  KELAS_SANITASI,
 } from "../data/classify.js";
 
 /**
@@ -78,8 +77,9 @@ function htmlPopup(feature) {
   const kelasKap = kelasKapasitas(p.idx_layanan);
   const idxTeks = `${p.idx_layanan > 0 ? "+" : ""}${angka(p.idx_layanan, 2)}`;
 
-  // Empat baris wajib FR-08: stunting (kelas), sanitasi (kelas), kuadran,
-  // kapasitas. Angka mentah tetap ditampilkan supaya bisa dikutip.
+  // Empat baris popup: stunting (kelas), prioritas, kapasitas, dan sanitasi
+  // layak sebagai data pelengkap. Angka mentah tetap ditampilkan supaya
+  // bisa dikutip.
   return `
     <div style="min-width:214px">
       <p style="margin:0;font-size:14px;font-weight:600">${p.kecamatan}</p>
@@ -95,19 +95,15 @@ function htmlPopup(feature) {
              KELAS_STUNTING
            )})</span>`
         )}
-        ${barisDl(
-          "Sanitasi layak",
-          `${angka(p.sanitasi_pct, 2)}%${luar ? " ⚠" : ""}
-           <span style="font-weight:400;color:var(--color-ink-3)">(kelas ${p.kelasSanitasi}/5 — ${labelSingkat(
-             p.kelasSanitasi,
-             KELAS_SANITASI
-           )})</span>`
-        )}
-        ${barisDl("Kuadran", p.kuadran)}
+        ${barisDl("Prioritas", p.prioritas)}
         ${barisDl(
           "Kapasitas",
           `${idxTeks}
            <span style="font-weight:400;color:var(--color-ink-3)">(kelas ${kelasKap}/5)</span>`
+        )}
+        ${barisDl(
+          "Sanitasi layak",
+          `${angka(p.sanitasi_pct, 2)}%${luar ? " ⚠" : ""}`
         )}
       </dl>
       ${

@@ -103,12 +103,12 @@ function perbaruiKartuTerpilih(nama) {
 
   isi("terpilih-nama", row.kecamatan);
   isi("terpilih-stunting", `${angka(row.stunting_pct, 2)}% (kelas ${row.kelas}/5)`);
+  isi("terpilih-prioritas", row.prioritas);
+  isi("terpilih-kapasitas", idxTeksLayanan(row.idx_layanan));
   isi(
     "terpilih-sanitasi",
-    `${angka(row.sanitasi_pct, 2)}%${row.sanitasi_pct > 100 ? " ⚠" : ""} (kelas ${row.kelasSanitasi}/5)`
+    `${angka(row.sanitasi_pct, 2)}%${row.sanitasi_pct > 100 ? " ⚠" : ""}`
   );
-  isi("terpilih-kuadran", row.kuadran);
-  isi("terpilih-kapasitas", idxTeksLayanan(row.idx_layanan));
 
   const tautan = document.getElementById("terpilih-detail");
   if (tautan) tautan.setAttribute("aria-label", `Lihat ${row.kecamatan} di tabel data`);
@@ -117,8 +117,8 @@ function perbaruiKartuTerpilih(nama) {
   // ambigu ketika layer diganti.
   const JUDUL = {
     stunting: "Stunting",
-    sanitasi: "Sanitasi",
-    prioritas: "Kuadran prioritas",
+    sanitasi: "Sanitasi layak",
+    prioritas: "Tingkat prioritas",
     kapasitas: "Kapasitas layanan",
   };
   const judul = kartu.querySelector("h3");

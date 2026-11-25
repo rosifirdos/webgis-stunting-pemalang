@@ -8,8 +8,9 @@ import { panelAktif, warnaKelas, RAMP_QGIS } from "./layers.js";
  * yang mengambang di atas peta.
  *
  * Legenda tidak pernah menyandarkan identitas pada warna saja: setiap langkah
- * selalu disertai label kelas dan rentang angkanya. Panel kategori (kuadran)
- * memakai empat warna tetap, jadi bar ringkasnya pun menjadi empat blok.
+ * selalu disertai label kelas dan rentang angkanya. Panel kategori (tingkat
+ * prioritas) memakai empat warna tetap, jadi bar ringkasnya pun menjadi
+ * empat blok.
  */
 
 function jeda(el, warna) {
@@ -73,8 +74,8 @@ export function gambarLegenda() {
     petaBar.style.background = `linear-gradient(to right, ${ramp.join(", ")})`;
   }
 
-  // Skala gradien hanya bermakna untuk kelas kuantil. Kuadran bukan urutan
-  // angka, jadi label "Rendah/Tinggi" akan salah.
+  // Skala gradien hanya bermakna untuk kelas kuantil. Tingkat prioritas bukan
+  // urutan angka, jadi label "Rendah/Tinggi" akan salah.
   if (ujungRendah) ujungRendah.textContent = kategori ? "" : "Rendah";
   if (ujungTinggi) ujungTinggi.textContent = kategori ? "" : "Tinggi";
   if (petaBar) {

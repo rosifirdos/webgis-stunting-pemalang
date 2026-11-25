@@ -43,7 +43,7 @@ export async function unduhData(jenis, n = 14) {
 
   if (jenis === "geojson") {
     const blob = await ambil("kecamatan.geojson");
-    unduh(blob, `kecamatan-pemalang-stunting-sanitasi-2024_${t}.geojson`);
+    unduh(blob, `kecamatan-pemalang-stunting-2024_${t}.geojson`);
     return;
   }
 
@@ -57,7 +57,7 @@ export async function unduhData(jenis, n = 14) {
     const blob = new Blob([kepala + teks], {
       type: "text/csv;charset=utf-8",
     });
-    unduh(blob, `kecamatan-pemalang-stunting-sanitasi-2024_${t}.csv`);
+    unduh(blob, `kecamatan-pemalang-stunting-2024_${t}.csv`);
     return;
   }
 

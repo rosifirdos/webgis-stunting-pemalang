@@ -1,6 +1,6 @@
 import { getState, setState } from "../state/store.js";
 import { angka } from "../data/stats.js";
-import { KELAS_STUNTING, KELAS_SANITASI } from "../data/classify.js";
+import { KELAS_STUNTING } from "../data/classify.js";
 
 /**
  * Tabel data per kecamatan.
@@ -10,19 +10,21 @@ import { KELAS_STUNTING, KELAS_SANITASI } from "../data/classify.js";
  * tidak dimiliki peta, dan menjadi "tampilan tabel" yang membuat grafik tetap
  * terbaca tanpa bergantung pada warna (syarat aksesibilitas).
  *
- * Klik baris membuka detail empat baris (FR-08) sekaligus menyorot kecamatan
- * di peta; detail itu juga jalur wajib untuk kuadran dan alasannya, karena
- * peta utamanya adalah gambar statis.
+ * Kolomnya hanya variabel fokus (stunting) dan turunannya (kelas, tingkat
+ * prioritas, indeks kapasitas). Determinan - sanitasi dan 94 lainnya - tidak
+ * dikolomkan di sini supaya tidak tampil setara dengan outcome; semuanya
+ * bisa diperiksa di panel Info dan di berkas unduhan (CSV/GeoJSON).
+ *
+ * Klik baris membuka detail sekaligus menyorot kecamatan di peta.
  */
 
 const KOLOM = [
   { kunci: "kecamatan", label: "Kecamatan", jenis: "teks" },
   { kunci: "stunting_pct", label: "Stunting", jenis: "persen" },
-  { kunci: "sanitasi_pct", label: "Sanitasi layak", jenis: "persen" },
   { kunci: "stunting_jml", label: "Kasus", jenis: "angka" },
   { kunci: "balita_ukur", label: "Balita diukur", jenis: "angka" },
   { kunci: "kelas", label: "Kelas", jenis: "angka" },
-  { kunci: "kuadran", label: "Kuadran", jenis: "teks" },
+  { kunci: "prioritas", label: "Prioritas", jenis: "teks" },
   { kunci: "idx_layanan", label: "Idx. layanan", jenis: "angka" },
 ];
 
@@ -30,12 +32,6 @@ const sel = (teks, kelas = "") =>
   `<td class="px-4 py-2.5 ${kelas}">${teks}</td>`;
 
 const PANAH = { asc: "↑", desc: "↓" };
-
-/** Peringatan nilai di luar skala 100%, dengan alasan yang terbaca pembaca layar. */
-const tandaSkala = (v) =>
-  Number(v) > 100
-    ? ' <span class="text-[var(--color-warning)]" title="di luar skala 100%" aria-label="di luar skala 100 persen">⚠</span>'
-    : "";
 
 const idxTeks = (v) => {
   const n = Number(v);
@@ -71,33 +67,23 @@ function selKelas(r) {
     </span>`;
 }
 
-/** Empat baris informasi kontekstual saat baris dibuka. */
+/** Detail kontekstual saat baris dibuka: outcome dan turunannya. */
 function isiDetail(r) {
   const kelasStunting =
     KELAS_STUNTING[Number(r.kelas) - 1]?.label ?? `Kelas ${r.kelas}`;
-  const kelasSanitasi =
-    KELAS_SANITASI[Number(r.kelasSanitasi) - 1]?.label ??
-    `Kelas ${r.kelasSanitasi}`;
 
   return `
     <dl class="grid gap-x-8 gap-y-2 text-[13px] sm:grid-cols-2">
       <div class="flex flex-wrap justify-between gap-x-3 sm:justify-start">
         <dt class="text-[var(--color-ink-2)]">Stunting</dt>
         <dd class="tnum font-medium">
-          ${angka(r.stunting_pct, 2)}%${tandaSkala(r.stunting_pct)}
+          ${angka(r.stunting_pct, 2)}%
           <span class="font-normal text-[var(--color-ink-3)]">(${kelasStunting})</span>
         </dd>
       </div>
       <div class="flex flex-wrap justify-between gap-x-3 sm:justify-start">
-        <dt class="text-[var(--color-ink-2)]">Sanitasi layak</dt>
-        <dd class="tnum font-medium">
-          ${angka(r.sanitasi_pct, 2)}%${tandaSkala(r.sanitasi_pct)}
-          <span class="font-normal text-[var(--color-ink-3)]">(${kelasSanitasi})</span>
-        </dd>
-      </div>
-      <div class="flex flex-wrap justify-between gap-x-3 sm:justify-start">
-        <dt class="text-[var(--color-ink-2)]">Kuadran</dt>
-        <dd class="font-medium">${r.kuadran}</dd>
+        <dt class="text-[var(--color-ink-2)]">Prioritas</dt>
+        <dd class="font-medium">${r.prioritas}</dd>
       </div>
       <div class="flex flex-wrap justify-between gap-x-3 sm:justify-start">
         <dt class="text-[var(--color-ink-2)]">Kapasitas layanan</dt>
@@ -107,8 +93,8 @@ function isiDetail(r) {
         </dd>
       </div>
       <div class="sm:col-span-2">
-        <dt class="text-[var(--color-ink-2)]">Alasan kuadran</dt>
-        <dd class="text-[var(--color-ink)]">${r.alasanKuadran}</dd>
+        <dt class="text-[var(--color-ink-2)]">Alasan prioritas</dt>
+        <dd class="text-[var(--color-ink)]">${r.alasanPrioritas}</dd>
       </div>
     </dl>`;
 }
@@ -131,18 +117,17 @@ export function gambarTabel(rows) {
     tr.innerHTML =
       sel(r.kecamatan, "font-medium") +
       sel(`${angka(r.stunting_pct, 2)}%`, "tnum text-right") +
-      sel(`${angka(r.sanitasi_pct, 2)}%${tandaSkala(r.sanitasi_pct)}`, "tnum text-right") +
       sel(angka(r.stunting_jml), "tnum text-right") +
       sel(angka(r.balita_ukur), "tnum text-right text-[var(--color-ink-2)]") +
       sel(selKelas(r)) +
-      sel(r.kuadran, "text-[var(--color-ink-2)]") +
+      sel(r.prioritas, "text-[var(--color-ink-2)]") +
       sel(idxTeks(r.idx_layanan), "tnum text-right");
 
     const detail = document.createElement("tr");
     detail.className =
       "border-b border-[var(--color-hairline)] bg-[var(--color-canvas)]";
     detail.hidden = true;
-    detail.innerHTML = `<td colspan="8" class="px-4 py-3">${isiDetail(r)}</td>`;
+    detail.innerHTML = `<td colspan="7" class="px-4 py-3">${isiDetail(r)}</td>`;
 
     const pilih = () => saatPilih(r.kecamatan);
     const bukaTutup = () => {

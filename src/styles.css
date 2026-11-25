@@ -38,7 +38,7 @@
   --color-hairline: #e1e0d9;
   --color-axis: #c3c2b7;
   /* Tautan butuh langkah biru tersendiri. --color-sanitasi-2 dipilih sebagai
-     isian peta/grafik (titik scatter, poligon), dan pada 12px ia hanya 3.47:1 -
+     isian poligon layer sanitasi, dan pada 12px ia hanya 3.47:1 -
      gagal AA. Langkah di bawah dipilih dengan mengukur, bukan disamakan dengan
      ramp: 4.78:1 di kanvas, 4.91:1 di permukaan, masih sewarna dengan ramp. */
   --color-link: #2a6fc4;
