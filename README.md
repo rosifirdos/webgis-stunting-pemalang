@@ -1,10 +1,10 @@
 # Web GIS Stunting & Sanitasi — Kabupaten Pemalang 2024
 
-Peta choropleth interaktif dan dashboard analitik untuk prevalensi balita
-stunting dan capaian akses sanitasi layak di 14 kecamatan Kabupaten Pemalang.
-Angka bersumber dari **Profil Kesehatan Kabupaten Pemalang 2024** (Dinas
-Kesehatan Kabupaten Pemalang); batas administrasi dari **LapakGIS** (WGS84 /
-EPSG:4326).
+Web GIS dan dashboard analitik untuk prevalensi balita stunting di 14
+kecamatan Kabupaten Pemalang. **Stunting adalah fokus studi; sanitasi dipakai
+sebagai faktor penjelas**, bukan penyebab. Angka bersumber dari **Profil
+Kesehatan Kabupaten Pemalang 2024** (Dinas Kesehatan Kabupaten Pemalang);
+batas administrasi dari **LapakGIS** (WGS84 / EPSG:4326).
 
 Dibuat untuk tugas mata kuliah Sistem Informasi Geografis —
 Awanda Rosi Firdaus (NPM 24670105).
@@ -27,7 +27,17 @@ npm run prepare-data   # regenerasi public/data/ dari Shapefile sumber
 (`../Kecamatan_Pemalang_Stunting_Sanitasi_2024.shp`), jadi Shapefile sumber
 harus tetap ada di sana. Skrip ini **tidak memerlukan GDAL, QGIS, atau
 mapshaper** — parsing SHP/DBF ditulis sendiri dengan Node murni, tanpa
-dependensi tambahan.
+dependensi tambahan. Perintah yang sama juga menulis
+`public/data/determinan.json` (95 uji determinan, 6 model regresi, 7 baris
+registry anomali), sehingga panel Info tidak memuat angka statistik di HTML.
+
+**Peta tidak dirender browser.** Peta resmi untuk laporan adalah hasil ekspor
+QGIS di `public/peta/`, bukan tangkapan layar Leaflet. Bila data berubah,
+perbarui dua hal: `npm run prepare-data` **dan** ekspor ulang layout QGIS
+(langkah lengkap di `public/peta/README.md`).
+
+Rujukan dokumen: PRD v2 di [`PRD.md`](PRD.md) dan PRD v1 di
+[`../PRD.md`](../PRD.md).
 
 ---
 
@@ -37,8 +47,9 @@ dependensi tambahan.
 webgis-stunting-pemalang/
 ├─ public/
 │  ├─ data/
-│  │  ├─ kecamatan.geojson        14 poligon + atribut (398 KB, 40 KB brotli)
-│  │  └─ kecamatan.csv            tabel atribut untuk diunduh ulang
+│  │  ├─ kecamatan.geojson        14 poligon + atribut (391 KB, 40 KB brotli)
+│  │  ├─ kecamatan.csv            tabel atribut untuk diunduh ulang
+│  │  └─ determinan.json          95 uji + regresi + anomali (lazy load)
 │  ├─ media/                      6 berkas foto (WebP), total 680 KB
 │  │                              · 2 hero (lebar/sempit), 2 pita, 2 masthead
 │  └─ peta/                       4 layout QGIS cetak (PNG 3507×2480)
@@ -68,9 +79,12 @@ webgis-stunting-pemalang/
 │  │  ├─ table.js                tabel: cari, urut, filter
 │  │  ├─ galeri.js                foto sebagai bagian tata letak + kreditnya
 │  │  ├─ galeri-peta.js           pemilih 4 peta cetak hasil QGIS
+│  │  ├─ info.js                 uji determinan, regresi, registry anomali
 │  │  └─ export.js               unduh GeoJSON + CSV
 │  └─ state/store.js             state tunggal (layer aktif, kecamatan terpilih)
-├─ scripts/prepare-data.mjs      SHP/DBF → GeoJSON + CSV, tanpa GDAL
+├─ scripts/
+│  ├─ prepare-data.mjs           SHP/DBF → GeoJSON + CSV, tanpa GDAL
+│  └─ prepare-determinan.mjs     uji determinan + regresi + anomali
 └─ vite.config.js
 ```
 
@@ -198,24 +212,25 @@ Ketentuan yang dipegang:
 
 ## Peta
 
-Panel **Peta** memuat dua lapis peta dengan peran berbeda:
+Ada dua lapis peta dengan peran yang tegas:
 
-1. **Peta interaktif** (`src/map/*`, Leaflet) — lapisan utama. Bisa digeser dan
-   di-zoom, berganti antara prevalensi stunting (fokus utama) dan akses
-   sanitasi layak (faktor penjelas), berganti basemap, serta diklik per
-   kecamatan. Klik satu poligon menyorot baris tabel, grafik, dan kartu
-   "Kecamatan terpilih" sekaligus; filter kelas meredupkan kecamatan yang
-   tersaring tanpa menghapusnya, supaya konteks keruangan tetap utuh.
-2. **Peta cetak (layout QGIS)** — dilipat di dalam `<details>` di bawah peta
-   interaktif. Empat gambar hasil ekspor proyek QGIS 3.44.16
+1. **Peta resmi — gambar ekspor QGIS** (`public/peta/*.png`). Empat layout
+   diekspor dari proyek QGIS 3.44.16
    (`../output/Pemalang_Stunting_Sanitasi_2024.qgz`) berukuran 3507 × 2480 px:
    stunting (utama), kuadran prioritas, faktor penjelas sanitasi, dan indeks
-   kapasitas layanan. Ini yang dipakai bila legenda, anotasi, dan skala harus
-   sama persis dengan layout untuk laporan cetak.
+   kapasitas layanan. Inilah peta yang dipakai di laporan dan panel Peta
+   (galeri `<details>` serta gambar utama di Home), karena legenda, anotasi,
+   dan skalanya sama persis dengan layout cetak. **Peta ini tidak dibuat oleh
+   browser.**
+2. **Peta jelajah — Leaflet** (`src/map/*`). Alat bantu opsional untuk
+   menggeser, memperbesar, mengganti basemap, dan mengklik kecamatan; klik satu
+   poligon menyorot baris tabel, grafik, dan kartu "Kecamatan terpilih".
+   Peta ini **bukan** sumber peta laporan dan tidak pernah diklaim sebagai
+   ekspor QGIS.
 
-Warna poligon mengikuti ramp proyek QGIS, sehingga peta di layar dan peta cetak
-memakai kelas warna yang sama; bedanya hanya ada di grafik, dan itu dijelaskan
-di bagian [Catatan metodologi](#catatan-metodologi).
+Warna poligon peta jelajah mengikuti ramp proyek QGIS, sehingga kelas warnanya
+sama dengan peta cetak; bedanya hanya ada di grafik, dan itu dijelaskan di
+bagian [Catatan metodologi](#catatan-metodologi).
 
 ---
 
@@ -235,9 +250,13 @@ yang tidak konsisten antar-baris puskesmas pada Tabel 81 mentah. Nilai
 - dicatat eksplisit di halaman Info.
 
 **Korelasi lemah, dan itu ditampilkan sebagai temuan.** Korelasi sanitasi ↔
-stunting hanya r = −0,22 (R² = 0,05). Nilai r dan R² ditampilkan apa adanya
-dengan keterangan netral: sanitasi bukan satu-satunya faktor penentu stunting
-pada tingkat kecamatan. Menyembunyikan angka yang lemah akan menyesatkan.
+stunting hanya r = −0,22 (R² = 0,05; p = 0,443; n = 14). Nilai r dan R²
+ditampilkan apa adanya dengan keterangan netral: sanitasi bukan satu-satunya
+faktor penentu stunting pada tingkat kecamatan. Menyembunyikan angka yang lemah
+akan menyesatkan. Uji terhadap 95 variabel determinan juga tidak menemukan satu
+pun yang signifikan setelah koreksi Benjamini–Hochberg; karena itu seluruh
+analisis diberi label eksploratif, dan hasil regresi dilaporkan sebagai nominal.
+Rinciannya ada di panel Info.
 
 **Peta memakai warna QGIS apa adanya; grafik memakai ramp tema.** Isi poligon
 disalin dari proyek QGIS — *Reds* lima kelas untuk stunting dan *Blues* lima
@@ -327,13 +346,14 @@ di Netlify — tanpa penyetelan tambahan.
 
 ### GitHub Pages (alternatif)
 
-`vite.config.js` memakai `base: "./"`, sehingga aset tetap ditemukan bila
-di-host di sub-path. Untuk Pages, terbitkan folder `dist/`. Catatan: Pages tidak
-mendukung rewrite SPA, jadi tautan langsung ke `#home` / `#peta` / `#info` tetap
-bekerja (bagian setelah `#` tidak dikirim ke server), tetapi alamat tanpa hash
-di sub-path perlu disesuaikan.
+`vite.config.js` memakai `base: "/webgis-stunting-pemalang/"`, sesuai nama
+repo. Bila repo Pages memakai nama lain, ubah `base` agar aset ditemukan;
+untuk host di akar domain, gunakan `base: "/"`. Untuk Pages, terbitkan folder
+`dist/`. Catatan: Pages tidak mendukung rewrite SPA, jadi tautan langsung ke
+`#home` / `#peta` / `#info` tetap bekerja (bagian setelah `#` tidak dikirim ke
+server), tetapi alamat tanpa hash perlu diarahkan ke `index.html`.
 
-**Kompresi.** GeoJSON mentah 398 KB; Vercel dan Netlify mengirimnya dengan
+**Kompresi.** GeoJSON mentah 391 KB; Vercel dan Netlify mengirimnya dengan
 brotli otomatis → **40 KB** saat ditransfer (gzip 76 KB). Ini memenuhi target
 < 150 KB. Verifikasi dengan `Content-Encoding: br` pada header respons.
 

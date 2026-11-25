@@ -48,21 +48,6 @@ export function kelasSanitasi(pct) {
   return kelasDariBreak(pct, BREAK_SANITASI);
 }
 
-/**
- * Kompatibilitas v1: modul lama masih memanggil indeks 0..2 dari nama kelas
- * teks. Fungsi ini dipertahankan agar impor lama tidak pecah, tetapi warna
- * baru memakai angka kelas 1..5 secara langsung - jangan dipakai untuk warna.
- */
-export function indeksKelas(nama) {
-  if (nama === "Tinggi") return 2;
-  if (nama === "Sedang") return 1;
-  return 0;
-}
-
-export function indeksKelasSanitasi(pct) {
-  return kelasSanitasi(pct) - 1;
-}
-
 /** Teks rentang tiap kelas, dibangun dari break agar tidak bisa melenceng. */
 function rentang(i, breaks) {
   if (i === 0) return `< ${desimal(breaks[0])}%`;
