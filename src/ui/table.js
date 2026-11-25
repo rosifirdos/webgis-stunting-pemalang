@@ -11,7 +11,7 @@ import { KELAS_STUNTING } from "../data/classify.js";
  * terbaca tanpa bergantung pada warna (syarat aksesibilitas).
  *
  * Kolomnya hanya variabel fokus (stunting) dan turunannya (kelas, tingkat
- * prioritas, indeks kapasitas). Determinan - sanitasi dan 94 lainnya - tidak
+ * prioritas). Determinan - sanitasi dan 94 lainnya - tidak
  * dikolomkan di sini supaya tidak tampil setara dengan outcome; semuanya
  * bisa diperiksa di panel Info dan di berkas unduhan (CSV/GeoJSON).
  *
@@ -25,7 +25,6 @@ const KOLOM = [
   { kunci: "balita_ukur", label: "Balita diukur", jenis: "angka" },
   { kunci: "kelas", label: "Kelas", jenis: "angka" },
   { kunci: "prioritas", label: "Prioritas", jenis: "teks" },
-  { kunci: "idx_layanan", label: "Idx. layanan", jenis: "angka" },
 ];
 
 const sel = (teks, kelas = "") =>
@@ -120,14 +119,13 @@ export function gambarTabel(rows) {
       sel(angka(r.stunting_jml), "tnum text-right") +
       sel(angka(r.balita_ukur), "tnum text-right text-[var(--color-ink-2)]") +
       sel(selKelas(r)) +
-      sel(r.prioritas, "text-[var(--color-ink-2)]") +
-      sel(idxTeks(r.idx_layanan), "tnum text-right");
+      sel(r.prioritas, "text-[var(--color-ink-2)]");
 
     const detail = document.createElement("tr");
     detail.className =
       "border-b border-[var(--color-hairline)] bg-[var(--color-canvas)]";
     detail.hidden = true;
-    detail.innerHTML = `<td colspan="7" class="px-4 py-3">${isiDetail(r)}</td>`;
+    detail.innerHTML = `<td colspan="6" class="px-4 py-3">${isiDetail(r)}</td>`;
 
     const pilih = () => saatPilih(r.kecamatan);
     const bukaTutup = () => {
