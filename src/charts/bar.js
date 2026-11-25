@@ -16,9 +16,13 @@ import { palet, gayaTip, pluginLabelBatang } from "./base.js";
  * Kenapa batang, bukan peta saja: peringkat adalah pertanyaan "siapa yang
  * paling tinggi", sedangkan peta menjawab "di mana". Keduanya dibutuhkan.
  *
- * Satu seri saja, jadi tidak ada kotak legenda - judul kartu sudah menamai
- * variabelnya. Warna mengikuti kelas kecamatan (atribut wilayah itu sendiri),
- * bukan peringkatnya, sehingga memfilter data tidak mengecat ulang sisanya.
+ * Satu seri utama (stunting). Sanitasi tidak dijadikan seri batang kedua yang
+ * setara: nilainya 46-112%, jauh di atas sumbu stunting 4-17%, sehingga batang
+ * sanitasi akan menghimpit batang stunting. Sanitasi digambar sebagai titik
+ * pembanding pada sumbu atas tersendiri, dengan label tegas "pembanding".
+ *
+ * Warna batang mengikuti kelas kecamatan (atribut wilayah itu sendiri), bukan
+ * peringkatnya, sehingga memfilter data tidak mengecat ulang sisanya.
  */
 
 let inst = null;
@@ -43,6 +47,7 @@ export function gambarBar(rows, { onPilih } = {}) {
 
   const p = palet();
   const data = [...rows].sort((a, b) => a.stunting_pct - b.stunting_pct);
+  const maksSanitasi = Math.max(...data.map((r) => r.sanitasi_pct));
 
   pasangTinggi(data.length);
   inst?.destroy();
@@ -64,6 +69,22 @@ export function gambarBar(rows, { onPilih } = {}) {
           barPercentage: 0.72,
           categoryPercentage: 0.86,
         },
+        {
+          label: "Sanitasi layak (pembanding)",
+          type: "line",
+          xAxisID: "x2",
+          data: data.map((r) => r.sanitasi_pct),
+          // Tanpa garis: hanya penanda titik, supaya tidak terbaca sebagai
+          // model atau seri yang setara dengan batang stunting.
+          showLine: false,
+          pointStyle: "rectRot",
+          pointRadius: 3.5,
+          pointHoverRadius: 6,
+          pointHitRadius: 0,
+          pointBackgroundColor: p.ink3,
+          pointBorderColor: p.surface,
+          pointBorderWidth: 1,
+        },
       ],
     },
     options: {
@@ -77,7 +98,10 @@ export function gambarBar(rows, { onPilih } = {}) {
       onHover: (e, els) => {
         e.native.target.style.cursor = els.length ? "pointer" : "default";
       },
-      layout: { padding: { right: 46, top: 4, bottom: 2 } },
+      layout: { padding: { right: 46, top: 24, bottom: 2 } },
+      // Tooltip per kategori: menampilkan batang stunting dan titik sanitasi
+      // sekaligus, sehingga pembaca bisa membandingkan tanpa mengira-ngira.
+      interaction: { mode: "index", intersect: false },
       scales: {
         x: {
           beginAtZero: true,
@@ -91,6 +115,28 @@ export function gambarBar(rows, { onPilih } = {}) {
             callback: (v) => `${angka(v, 0)}%`,
           },
         },
+        // Sumbu atas khusus sanitasi. Dipisah agar nilai 46-112% tidak
+        // memperlebar sumbu stunting dan menghimpit batang utama.
+        x2: {
+          position: "top",
+          min: 0,
+          max: Math.ceil((maksSanitasi * 1.08) / 10) * 10,
+          grid: { display: false },
+          border: { display: false },
+          title: {
+            display: true,
+            text: "Sanitasi layak — pembanding (%)",
+            color: p.ink3,
+            font: { size: 10, weight: "500" },
+            padding: { bottom: 2 },
+          },
+          ticks: {
+            color: p.ink3,
+            padding: 4,
+            font: { size: 10 },
+            callback: (v) => `${angka(v, 0)}%`,
+          },
+        },
         y: {
           grid: { display: false },
           border: { display: false },
@@ -98,7 +144,18 @@ export function gambarBar(rows, { onPilih } = {}) {
         },
       },
       plugins: {
-        legend: { display: false },
+        legend: {
+          display: true,
+          position: "bottom",
+          labels: {
+            color: p.ink2,
+            boxWidth: 10,
+            boxHeight: 10,
+            usePointStyle: true,
+            padding: 14,
+            font: { size: 11 },
+          },
+        },
         // Opsi plugin inline dibaca Chart.js dari `options.plugins.<id>`,
         // bukan dari objek plugin di array `plugins`.
         labelBatang: {
@@ -113,6 +170,9 @@ export function gambarBar(rows, { onPilih } = {}) {
             title: (items) => data[items[0].dataIndex].kecamatan,
             label: (item) => {
               const r = data[item.dataIndex];
+              if (item.datasetIndex === 1) {
+                return `Pembanding — sanitasi layak ${angka(r.sanitasi_pct, 2)}%`;
+              }
               return [
                 `${angka(r.stunting_pct, 2)}% balita stunting`,
                 `${angka(r.stunting_jml)} dari ${angka(r.balita_ukur)} balita diukur`,
@@ -171,9 +231,14 @@ export function perbaruiTemaBar() {
   const data = inst.$data;
   inst.data.datasets[0].backgroundColor = data.map(warnaBatang);
   inst.data.datasets[0].hoverBackgroundColor = data.map(warnaBatang);
+  inst.data.datasets[1].pointBackgroundColor = p.ink3;
+  inst.data.datasets[1].pointBorderColor = p.surface;
   inst.options.scales.x.grid.color = p.hairline;
   inst.options.scales.x.ticks.color = p.ink3;
   inst.options.scales.y.ticks.color = p.ink2;
+  inst.options.scales.x2.ticks.color = p.ink3;
+  inst.options.scales.x2.title.color = p.ink3;
+  inst.options.plugins.legend.labels.color = p.ink2;
   Object.assign(inst.options.plugins.tooltip, gayaTip(p));
   const label = inst.options.plugins.labelBatang;
   if (label) {

@@ -32,7 +32,13 @@ async function ambil(berkas) {
   return res.blob();
 }
 
-export async function unduhData(jenis) {
+async function ambilTeks(berkas) {
+  const res = await fetch(`${import.meta.env.BASE_URL}data/${berkas}`);
+  if (!res.ok) throw new Error(`Gagal mengunduh ${berkas} (HTTP ${res.status})`);
+  return res.text();
+}
+
+export async function unduhData(jenis, n = 14) {
   const t = tanggal();
 
   if (jenis === "geojson") {
@@ -42,7 +48,15 @@ export async function unduhData(jenis) {
   }
 
   if (jenis === "csv") {
-    const blob = await ambil("kecamatan.csv");
+    const teks = await ambilTeks("kecamatan.csv");
+    // Metadata diletakkan sebagai komentar kepala, bukan baris data. Baris
+    // data tetap persis seperti berkas sumber; pembaca CSV yang tidak
+    // mengenal komentar dapat memakai nama berkas bertanggal sebagai penanda.
+    const kepala =
+      `# Sumber: Profil Kesehatan Kabupaten Pemalang 2024; n=${n}; diekspor ${t}\n`;
+    const blob = new Blob([kepala + teks], {
+      type: "text/csv;charset=utf-8",
+    });
     unduh(blob, `kecamatan-pemalang-stunting-sanitasi-2024_${t}.csv`);
     return;
   }
@@ -73,7 +87,7 @@ export async function jalankanUnduh(jenis, tombol, { n }) {
   tombol.disabled = true;
   tombol.classList.add("opacity-60");
   try {
-    await unduhData(jenis);
+    await unduhData(jenis, n);
     return { ok: true, pesan: pesanSuksesUnduh(jenis, n) };
   } catch (e) {
     return { ok: false, pesan: pesanGagalUnduh(jenis, e.message) };

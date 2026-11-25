@@ -9,6 +9,7 @@ import {
   CategoryScale,
   LinearScale,
   Tooltip,
+  Legend,
 } from "chart.js";
 import { token } from "../tokens.js";
 
@@ -17,9 +18,9 @@ import { token } from "../tokens.js";
  * dan skala yang benar-benar dipakai. Tanpa ini, `type: "scatter"` gagal
  * dengan "scatter is not a registered controller".
  *
- * Legend sengaja tidak diregistrasi: masing-masing grafik hanya punya satu
- * seri yang relevan, judul kartu sudah menamainya, dan kotak legenda untuk
- * satu seri hanya menambah tinta tanpa menambah informasi.
+ * Legend didaftarkan karena grafik batang kini punya dua penanda: batang
+ * stunting (seri utama) dan titik sanitasi (pembanding). Grafik lain tetap
+ * mematikan legend lewat `options.plugins.legend.display = false`.
  */
 Chart.register(
   BarController,
@@ -30,7 +31,8 @@ Chart.register(
   ScatterController,
   CategoryScale,
   LinearScale,
-  Tooltip
+  Tooltip,
+  Legend
 );
 
 /** Palet grafik dibaca dari token tema yang sedang aktif. */

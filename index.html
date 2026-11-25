@@ -146,6 +146,10 @@
             <p id="hero-catatan" class="max-w-[38ch] pb-1 text-[12px] leading-relaxed text-white/75"></p>
           </div>
 
+          <p class="mt-4 max-w-[62ch] text-[12px] leading-relaxed text-white/75">
+            Stunting adalah fokus studi; sanitasi adalah salah satu faktor penjelas.
+          </p>
+
           <!-- Kredit foto. Lokasi asli wajib terbaca: foto ini bukan dari
                  Pemalang, dan hero selebar ini paling mudah disalahartikan
                  sebagai potret kabupaten ini. -->
@@ -155,41 +159,54 @@
 
       <!-- Isi halaman: di sini batas lebar dipasang, bukan di <main>. -->
       <div class="mx-auto flex max-w-[1400px] flex-col gap-6 px-4 py-6 sm:px-6">
-        <!-- Tiga kartu statistik. Angka utama sudah ada di hero, jadi tidak
-               diulang di sini. -->
-        <div class="grid gap-3 sm:grid-cols-3 sm:items-start">
+        <!-- Empat kartu ringkasan. Angka utama tetap di hero; kartu-kartu ini
+               menjawab pertanyaan yang berbeda dan semuanya dihitung di
+               src/ui/kpi.js dari 14 baris yang sama. -->
+        <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 sm:items-start">
           <div class="card p-4">
             <p class="text-[13px] text-[var(--color-ink-2)]">
-              Rata-rata sanitasi layak
+              Rerata prevalensi stunting
             </p>
-            <p id="kpi-sanitasi" class="mt-3 text-2xl font-semibold leading-none">
+            <p id="kpi-rerata" class="mt-3 text-2xl font-semibold leading-none">
               —
             </p>
             <p class="mt-2 text-xs text-[var(--color-ink-3)]">
-              Rerata 14 kecamatan
+              Rerata 14 kecamatan, tidak berbobot
             </p>
           </div>
 
           <div class="card p-4">
             <p class="text-[13px] text-[var(--color-ink-2)]">
-              Stunting tertinggi
+              Prioritas Utama
             </p>
-            <p id="kpi-hotspot" class="mt-3 text-2xl font-semibold leading-none">
+            <p id="kpi-prioritas" class="mt-3 text-2xl font-semibold leading-none">
               —
             </p>
-            <p id="kpi-hotspot-nilai" class="mt-2 text-xs text-[var(--color-ink-3)]">
+            <p id="kpi-prioritas-nama" class="mt-2 text-xs leading-relaxed text-[var(--color-ink-3)]">
               —
             </p>
           </div>
 
           <div class="card p-4">
             <p class="text-[13px] text-[var(--color-ink-2)]">
-              Sanitasi terendah
+              Determinan Lain
             </p>
-            <p id="kpi-sanitasi-min" class="mt-3 text-2xl font-semibold leading-none">
+            <p id="kpi-determinan" class="mt-3 text-2xl font-semibold leading-none">
               —
             </p>
-            <p id="kpi-sanitasi-min-nilai" class="mt-2 text-xs text-[var(--color-ink-3)]">
+            <p id="kpi-determinan-nama" class="mt-2 text-xs leading-relaxed text-[var(--color-ink-3)]">
+              Sanitasi baik, stunting tetap tinggi
+            </p>
+          </div>
+
+          <div class="card p-4">
+            <p class="text-[13px] text-[var(--color-ink-2)]">
+              Hubungan sanitasi–stunting
+            </p>
+            <p id="kpi-hubungan" class="mt-3 text-2xl font-semibold leading-none">
+              —
+            </p>
+            <p id="kpi-hubungan-catatan" class="mt-2 text-xs leading-relaxed text-[var(--color-ink-3)]">
               —
             </p>
           </div>
@@ -300,9 +317,11 @@
             <div class="mt-4 rounded-lg border border-[var(--color-hairline)] bg-[var(--color-canvas)] p-3">
               <p class="text-[13px] leading-relaxed text-[var(--color-ink-2)]">
                 <span class="font-medium text-[var(--color-ink)]">r = <span id="nilai-r">—</span> · R² =
-                  <span id="nilai-r2">—</span></span>
+                  <span id="nilai-r2">—</span> · p = <span id="nilai-p">—</span> · n =
+                  <span id="nilai-n">—</span></span>
                 — <span id="tafsir-r"></span>
               </p>
+              <p id="label-signifikansi" class="mt-1 text-xs font-medium text-[var(--color-ink-3)]"></p>
             </div>
           </figure>
         </div>
@@ -315,16 +334,17 @@
           <figcaption class="border-b border-[var(--color-hairline)] p-5">
             <h3 class="text-[15px] font-semibold">Data per kecamatan</h3>
             <p class="mt-0.5 text-xs text-[var(--color-ink-3)]">
-              Klik judul kolom untuk mengurutkan. Klik baris untuk menyorot
-              kecamatan di peta.
+              Klik judul kolom untuk mengurutkan. Klik baris untuk membuka
+              detail sekaligus menyorot kecamatan di peta.
             </p>
           </figcaption>
 
           <div class="overflow-x-auto">
             <table class="w-full text-sm">
               <caption class="sr-only">
-                Prevalensi stunting, akses sanitasi layak, dan kelas kerentanan
-                per kecamatan di Kabupaten Pemalang 2024
+                Prevalensi stunting, akses sanitasi layak, kelas lima kuantil,
+                kuadran prioritas, dan indeks kapasitas layanan per kecamatan
+                di Kabupaten Pemalang 2024
               </caption>
               <thead>
                 <tr class="border-b border-[var(--color-hairline)] text-left text-xs text-[var(--color-ink-2)]">
@@ -364,6 +384,18 @@
                       Kelas <span data-panah="kelas" aria-hidden="true"></span>
                     </button>
                   </th>
+                  <th scope="col" class="px-4 py-2.5 font-medium">
+                    <button type="button" data-urut="kuadran"
+                      class="flex items-center gap-1 transition hover:text-[var(--color-ink)]">
+                      Kuadran <span data-panah="kuadran" aria-hidden="true"></span>
+                    </button>
+                  </th>
+                  <th scope="col" class="px-4 py-2.5 text-right font-medium">
+                    <button type="button" data-urut="idx_layanan"
+                      class="ml-auto flex items-center gap-1 transition hover:text-[var(--color-ink)]">
+                      Idx. layanan <span data-panah="idx_layanan" aria-hidden="true"></span>
+                    </button>
+                  </th>
                 </tr>
               </thead>
               <tbody id="isi-tabel"></tbody>
@@ -386,6 +418,11 @@
            tersedia sebagai gambar 3507 x 2480 px.
       -->
       <div class="mx-auto flex w-full max-w-[1400px] flex-col gap-4 px-4 py-6 sm:px-6">
+        <p
+          class="rounded-lg border border-[var(--color-hairline)] bg-[var(--color-canvas)] px-4 py-2.5 text-[13px] leading-relaxed text-[var(--color-ink-2)]">
+          Analisis bersifat eksploratif: n = 14 kecamatan, tidak ada variabel signifikan setelah koreksi FDR.
+        </p>
+
         <div class="grid gap-4 lg:grid-cols-[300px_1fr]">
           <!-- SIDEBAR -->
           <aside class="flex flex-col gap-4">
@@ -771,6 +808,10 @@
                 </svg>
                 Keterbatasan data
               </h3>
+              <p
+                class="mt-3 rounded-md border border-[var(--color-hairline)] bg-[var(--color-canvas)] px-3 py-2 text-[13px] leading-relaxed text-[var(--color-ink-2)]">
+                Data mengikuti sumber Profil Kesehatan 2024; nilai &gt; 100% tidak dikoreksi.
+              </p>
               <ul class="mt-3 flex list-disc flex-col gap-2.5 pl-5 text-sm leading-relaxed text-[var(--color-ink-2)]">
                 <li>
                   <span class="font-medium text-[var(--color-ink)]">Nilai sanitasi melebihi 100%.</span>

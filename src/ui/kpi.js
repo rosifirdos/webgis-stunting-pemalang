@@ -1,4 +1,4 @@
-import { ringkas, angka } from "../data/stats.js";
+import { ringkas, kuadranRingkas, angka } from "../data/stats.js";
 
 /**
  * KPI & angka utama.
@@ -7,14 +7,33 @@ import { ringkas, angka } from "../data/stats.js";
  * ditelusuri ke data mentah. Tidak ada angka yang ditulis tangan di HTML -
  * semuanya dihitung dari 14 baris yang sama yang menggambar peta.
  *
- * Angka besar (hero) memakai rerata sederhana antar-kecamatan karena satuannya
- * adalah "kecamatan", bukan "balita". Rerata berbobot kabupaten ditampilkan
- * sebagai catatan di bawahnya, supaya pembaca tahu kedua angka itu ada dan
- * mengapa bisa berbeda.
+ * Empat kartu di bawah hero menjawab empat pertanyaan berbeda:
+ * rerata kabupaten, di mana prioritas utama, di mana sanitasi tidak lagi
+ * menjelaskan stunting, dan seberapa lemah hubungan keduanya secara statistik.
  */
+
+/** Kekuatan hubungan tanpa istilah sebab-akibat. */
+function kekuatan(r) {
+  const a = Math.abs(r);
+  if (a < 0.2) return "sangat lemah";
+  if (a < 0.4) return "lemah";
+  if (a < 0.6) return "sedang";
+  if (a < 0.8) return "kuat";
+  return "sangat kuat";
+}
+
+const daftarNama = (rows, maks = 3) => {
+  const urut = [...rows].sort((a, b) => b.stunting_pct - a.stunting_pct);
+  const nama = urut.slice(0, maks).map((r) => r.kecamatan);
+  const sisa = urut.length - nama.length;
+  return sisa > 0 ? `${nama.join(", ")}, +${angka(sisa)} lainnya` : nama.join(", ");
+};
 
 export function gambarKpi(rows) {
   const s = ringkas(rows);
+  const k = kuadranRingkas(rows);
+  const prioritas = rows.filter((r) => r.kuadran === "1 Prioritas Utama");
+  const determinanLain = rows.filter((r) => r.kuadran === "2 Determinan Lain");
 
   const hero = document.getElementById("hero-stunting");
   if (hero) hero.textContent = `${angka(s.rerataStunting, 1)}%`;
@@ -27,31 +46,57 @@ export function gambarKpi(rows) {
       `${angka(s.totalBalita)} balita yang diukur di 14 kecamatan.`;
   }
 
-  const san = document.getElementById("kpi-sanitasi");
-  if (san) san.textContent = `${angka(s.rerataSanitasi, 1)}%`;
+  const set = (id, teks) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = teks;
+  };
 
-  const hotspot = document.getElementById("kpi-hotspot");
-  const hotspotNilai = document.getElementById("kpi-hotspot-nilai");
-  if (hotspot && hotspotNilai) {
-    hotspot.textContent = s.maksStunting.kecamatan;
-    hotspotNilai.textContent =
-      `${angka(s.maksStunting.stunting_pct, 2)}% balita stunting · ` +
-      `${angka(s.maksStunting.stunting_jml)} kasus`;
-  }
+  // 1. Rerata stunting — angka yang sama dengan hero, tetapi dengan satuan
+  //    yang jelas di kartu tersendiri.
+  set("kpi-rerata", `${angka(s.rerataStunting, 1)}%`);
 
-  const sanMin = document.getElementById("kpi-sanitasi-min");
-  const sanMinNilai = document.getElementById("kpi-sanitasi-min-nilai");
-  if (sanMin && sanMinNilai) {
-    sanMin.textContent = s.minSanitasi.kecamatan;
-    sanMinNilai.textContent = `${angka(s.minSanitasi.sanitasi_pct, 2)}% keluarga dengan sanitasi layak`;
-  }
+  // 2. Prioritas Utama — kuadran 1 (stunting tinggi, sanitasi rendah).
+  set("kpi-prioritas", `${angka(k["1 Prioritas Utama"])} kecamatan`);
+  set("kpi-prioritas-nama", daftarNama(prioritas));
 
+  // 3. Determinan Lain — stunting tetap tinggi meski sanitasi sudah baik.
+  //    Kalimat penjelas tetap ada, bukan diganti daftar nama.
+  set("kpi-determinan", `${angka(k["2 Determinan Lain"])} kecamatan`);
+  set(
+    "kpi-determinan-nama",
+    `${daftarNama(determinanLain)} — sanitasi baik, stunting tetap tinggi`
+  );
+
+  // 4. Hubungan sanitasi–stunting — eksplisit lemah dan tidak signifikan.
+  const arah = s.r < 0 ? "negatif" : "positif";
+  set(
+    "kpi-hubungan",
+    `r = ${angka(s.r, 2)} · p = ${angka(s.p, 3)} · n = ${angka(s.n)}`
+  );
+  set(
+    "kpi-hubungan-catatan",
+    `${kekuatan(s.r)}, ${s.p < 0.05 ? "signifikan" : "tidak signifikan"} ` +
+      `(n = ${angka(s.n)}) · arah ${arah} · sanitasi menjelaskan ` +
+      `${angka(s.r2 * 100, 0)}% keragaman stunting`
+  );
+
+  // Kotak korelasi di bawah scatter memakai angka yang sama.
   const r = document.getElementById("nilai-r");
+  const p = document.getElementById("nilai-p");
+  const n = document.getElementById("nilai-n");
   const r2 = document.getElementById("nilai-r2");
   const tafsir = document.getElementById("tafsir-r");
+  const label = document.getElementById("label-signifikansi");
   if (r) r.textContent = angka(s.r, 2);
+  if (p) p.textContent = angka(s.p, 3);
+  if (n) n.textContent = angka(s.n);
   if (r2) r2.textContent = angka(s.r2, 2);
   if (tafsir) tafsir.textContent = tafsirR(s.r, s.n);
+  if (label) {
+    label.textContent =
+      `${kekuatan(s.r)} / ${s.p < 0.05 ? "signifikan" : "tidak signifikan"} ` +
+      `(n=${angka(s.n)})`;
+  }
 
   const infoR = document.getElementById("info-r");
   if (infoR) infoR.textContent = `r = ${angka(s.r, 2)}`;
@@ -63,13 +108,12 @@ export function gambarKpi(rows) {
  */
 export function tafsirR(r, n) {
   const a = Math.abs(r);
-  const kekuatan =
-    a < 0.2 ? "sangat lemah" : a < 0.4 ? "lemah" : a < 0.6 ? "sedang" : a < 0.8 ? "kuat" : "sangat kuat";
+  const k = a < 0.2 ? "sangat lemah" : a < 0.4 ? "lemah" : a < 0.6 ? "sedang" : a < 0.8 ? "kuat" : "sangat kuat";
   const arah = r < 0 ? "negatif" : "positif";
   const pct = angka(r * r * 100, 0);
 
   return (
-    `kecenderungan ${arah} berkekuatan ${kekuatan}: makin tinggi akses sanitasi, ` +
+    `kecenderungan ${arah} berkekuatan ${k}: makin tinggi akses sanitasi, ` +
     `stunting cenderung ${r < 0 ? "lebih rendah" : "lebih tinggi"}. ` +
     `Sanitasi menjelaskan sekitar ${pct}% keragaman stunting antar ${n} kecamatan; ` +
     `sisanya ditentukan faktor lain yang tidak tersedia di data ini.`
