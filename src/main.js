@@ -1,9 +1,9 @@
 import "./styles.css";
 
 import { muatData } from "./data/load.js";
-import { getState, subscribe, terapkanFilter } from "./state/store.js";
+import { getState, setState, subscribe, terapkanFilter } from "./state/store.js";
 
-import { initTabs, onPetaAktif, pindahTab } from "./ui/tabs.js";
+import { initTabs } from "./ui/tabs.js";
 import { gambarKpi } from "./ui/kpi.js";
 import {
   initTabel,
@@ -21,18 +21,10 @@ import {
 } from "./ui/filters.js";
 import { jalankanUnduh } from "./ui/export.js";
 import { initFoto } from "./ui/galeri.js";
+import { initGaleriPeta } from "./ui/galeri-peta.js";
 import { initScrollAnimation } from "./ui/scroll.js";
 
 import { initTema, siklusTema, onTema, isGelap, getMode } from "./tokens.js";
-import { buatPeta, ukuranUlang } from "./map/init.js";
-import { gambarChoropleth, gambarUlang, pilih, tandaiFilter, fitJikaPerlu } from "./map/choropleth.js";
-import { gambarLegenda } from "./map/legend.js";
-import {
-  initKontrolPeta,
-  pilihKecamatan,
-  segarkanBasemap,
-  segarkanKartu,
-} from "./map/interactions.js";
 import { fontDashboard, palet } from "./charts/base.js";
 import { gambarBar, tabelBar, perbaruiTemaBar, hapusBar } from "./charts/bar.js";
 import {
@@ -114,11 +106,23 @@ async function mulai() {
     // supaya unduhan gambarnya berjalan bersamaan, bukan berurutan.
     initFoto();
 
-    const { geojson, rows } = await muatData();
+    const { rows } = await muatData();
     document.getElementById("pemuat")?.remove();
 
     const semua = rows;
     let rowsTampil = terapkanFilter(semua);
+
+    /* --- galeri peta -------------------------------------------------------
+       Peta resmi adalah gambar ekspor QGIS; tidak ada kanvas Leaflet di panel
+       Peta. Modul src/map/* dipertahankan sebagai rujukan, tetapi tidak
+       dipanggil saat boot. */
+    initGaleriPeta();
+
+    /** Pilihan dari tabel/grafik hanya menyorot baris; peta statis tidak bisa
+        menampilkan poligon terpilih. */
+    function pilihLokal(nama) {
+      setState({ terpilih: getState().terpilih === nama ? null : nama });
+    }
 
     /* --- tabel alternatif untuk kedua grafik ------------------------------ */
     const isiTabel = {
@@ -136,16 +140,9 @@ async function mulai() {
     /* --- filter ------------------------------------------------------------ */
     initFilter(semua.length);
 
-    /* --- peta -------------------------------------------------------------- */
-    const peta = buatPeta(document.getElementById("kanvas-peta"), { gelap: isGelap() });
-    gambarChoropleth(peta, geojson, semua, {
-      pilih: (nama) => pilihKecamatan(nama, { dari: "peta" }),
-    });
-
-    /* --- tabel & kontrol peta ---------------------------------------------- */
+    /* --- tabel -------------------------------------------------------------- */
     initTabel();
-    onPilihBaris((nama) => pilihKecamatan(nama, { dari: "tabel" }));
-    initKontrolPeta({ rows: semua, pindahTab });
+    onPilihBaris((nama) => pilihLokal(nama));
 
     /* --- unduhan ------------------------------------------------------------ */
     for (const tombol of document.querySelectorAll("[data-unduh]")) {
@@ -184,29 +181,18 @@ async function mulai() {
         perbaruiRingkasanFilter(semua.length);
         perbaruiPanah();
 
-        gambarBar(rowsTampil, {
-          onPilih: (nama) => pilihKecamatan(nama, { dari: "grafik" }),
-        });
-        gambarScatter(rowsTampil, {
-          onPilih: (nama) => pilihKecamatan(nama, { dari: "grafik" }),
-        });
+        gambarBar(rowsTampil, { onPilih: (nama) => pilihLokal(nama) });
+        gambarScatter(rowsTampil, { onPilih: (nama) => pilihLokal(nama) });
         segarkanTabelGrafik(isiTabel);
-
-        // Peta tetap memuat 14 kecamatan sebagai konteks keruangan; yang
-        // tersaring keluar hanya diredupkan, tidak dihilangkan.
-        tandaiFilter(rowsTampil.length === semua.length ? null : rowsTampil);
-        gambarLegenda();
       }
 
       // Pilihan yang gugur karena filter tidak boleh dibiarkan menggantung.
       if (state.terpilih && dataBerubah && !rowsTampil.some((r) => r.kecamatan === state.terpilih)) {
-        pilihKecamatan(null);
+        setState({ terpilih: null });
         return;
       }
 
       tandaiTerpilih(state.terpilih);
-      pilih(state.terpilih, { bukaPopup: false });
-      segarkanKartu();
     }
 
     render();
@@ -214,34 +200,14 @@ async function mulai() {
     initScrollAnimation();
 
     /* --- peristiwa global ---------------------------------------------------- */
-    onPetaAktif(() => {
-      ukuranUlang();
-      // Panel baru punya ukuran setelah benar-benar terlihat; bingkai awal
-      // dihitung pada saat itu, bukan saat wadahnya masih 0x0.
-      requestAnimationFrame(() => {
-        ukuranUlang();
-        fitJikaPerlu();
-      });
-      // Pastikan Leaflet menyesuaikan ukuran setelah animasi transisi panel selesai
-      setTimeout(() => {
-        ukuranUlang();
-      }, 300);
-    });
-
-    window.addEventListener("resize", () => {
-      if (!document.getElementById("panel-peta")?.hidden) ukuranUlang();
-    });
-
-    onTema(({ gelap }) => {
+    // Peta kini gambar statis, jadi tidak ada ukuran kanvas yang perlu
+    // diperbarui saat tab Peta dibuka atau jendela diubah ukurannya.
+    onTema(() => {
       // Warna dibaca dari token CSS, jadi semuanya digambar ulang setelah
       // atribut tema berganti - bukan sekadar dibalik.
       fontDashboard(palet());
-      gambarUlang();
-      gambarLegenda();
       perbaruiTemaBar();
       perbaruiTemaScatter();
-      segarkanBasemap({ gelap });
-      if (!document.getElementById("panel-peta")?.hidden) ukuranUlang();
     });
   } catch (e) {
     console.error(e);
