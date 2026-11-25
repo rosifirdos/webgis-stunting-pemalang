@@ -30,30 +30,3 @@ export async function muatData() {
   cache = { geojson, rows };
   return cache;
 }
-
-let cacheDeterminan = null;
-
-/**
- * Muat hasil uji determinan (95 variabel) untuk panel Info.
- * Cache terpisah dan TIDAK dipanggil saat boot: berkasnya hanya dibutuhkan
- * saat tab Info pertama kali dibuka, jadi tidak perlu membebani muat awal.
- */
-export async function muatDeterminan() {
-  if (cacheDeterminan) return cacheDeterminan;
-
-  const url = `${import.meta.env.BASE_URL}data/determinan.json`;
-  const res = await fetch(url);
-  if (!res.ok) {
-    throw new Error(`Gagal memuat ${url} (HTTP ${res.status})`);
-  }
-
-  const data = await res.json();
-  if (!Array.isArray(data.variabel)) {
-    throw new Error("determinan.json tidak punya daftar `variabel`");
-  }
-
-  // Baru di-cache setelah terbukti valid, supaya kegagalan sekali tidak
-  // membuat semua percobaan berikutnya ikut gagal.
-  cacheDeterminan = data;
-  return data;
-}

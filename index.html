@@ -234,8 +234,8 @@
         </div>
 
         <!-- Grafik: satu diagram batang peringkat. Hubungan antar-variabel
-             tidak digrafikkan di sini; analisisnya ada di panel Info (uji
-             determinan 95 variabel dengan koreksi FDR). -->
+             tidak digrafikkan di sini; analisisnya ada dalam laporan data
+             (95 variabel dengan koreksi FDR). -->
         <div class="grid gap-4">
           <!-- Bar chart -->
           <figure class="card flex flex-col p-5">
@@ -590,97 +590,6 @@
               </ol>
             </div>
 
-            <!-- Uji determinan: tabel baru dimuat saat tab Info dibuka. -->
-            <div class="card p-5">
-              <h3 class="text-[15px] font-semibold">Uji determinan</h3>
-              <p class="mt-2 text-sm leading-relaxed text-[var(--color-ink-2)]">
-                Dengan 14 kecamatan dan 95 uji, tidak ada variabel yang signifikan setelah koreksi FDR. Hasil ini eksploratif.
-              </p>
-              <p id="determinan-meta" class="mt-2 text-xs leading-relaxed text-[var(--color-ink-3)]">
-                Hasil uji dimuat saat tab Info dibuka.
-              </p>
-
-              <div class="mt-4 flex flex-wrap items-end gap-x-5 gap-y-3" role="group"
-                aria-label="Filter uji determinan">
-                <div class="flex items-center gap-2">
-                  <label for="determinan-kelompok"
-                    class="text-[13px] font-medium text-[var(--color-ink-2)]">Kelompok</label>
-                  <select id="determinan-kelompok"
-                    class="rounded-md border border-[var(--color-hairline)] bg-[var(--color-surface)] px-2.5 py-1.5 text-sm">
-                    <option value="">Semua kelompok</option>
-                  </select>
-                </div>
-
-                <label class="flex items-center gap-2 text-[13px] text-[var(--color-ink-2)]">
-                  <input id="determinan-actionable" type="checkbox"
-                    class="h-4 w-4 rounded border-[var(--color-hairline)]" />
-                  Hanya yang bisa diintervensi
-                </label>
-
-                <div class="flex items-center gap-2">
-                  <label for="determinan-cari"
-                    class="text-[13px] font-medium text-[var(--color-ink-2)]">Cari variabel</label>
-                  <input id="determinan-cari" type="search" placeholder="mis. imunisasi" autocomplete="off"
-                    class="w-40 rounded-md border border-[var(--color-hairline)] bg-[var(--color-surface)] px-2.5 py-1.5 text-sm placeholder:text-[var(--color-ink-3)]" />
-                </div>
-
-                <p id="determinan-jumlah" class="ml-auto text-[12px] text-[var(--color-ink-3)]"
-                  aria-live="polite"></p>
-              </div>
-
-              <div class="mt-3 max-h-[30rem] overflow-auto rounded-lg border border-[var(--color-hairline)]">
-                <table class="w-full min-w-[46rem] text-sm">
-                  <caption class="sr-only">
-                    Hasil uji variabel determinan terhadap prevalensi stunting,
-                    diurutkan menurut nilai p menaik
-                  </caption>
-                  <thead class="sticky top-0 bg-[var(--color-surface)]">
-                    <tr class="border-b border-[var(--color-hairline)] text-left text-xs text-[var(--color-ink-3)]">
-                      <th class="px-3 py-2 font-medium">Variabel</th>
-                      <th class="px-3 py-2 font-medium">Kelompok</th>
-                      <th class="px-3 py-2 text-right font-medium">r</th>
-                      <th class="px-3 py-2 text-right font-medium">ρ</th>
-                      <th class="px-3 py-2 text-right font-medium">p</th>
-                      <th class="px-3 py-2 text-right font-medium">FDR</th>
-                      <th class="px-3 py-2 font-medium">Arah</th>
-                      <th class="px-3 py-2 text-center font-medium">Actionable</th>
-                    </tr>
-                  </thead>
-                  <tbody id="determinan-tbody">
-                    <tr>
-                      <td colspan="8" class="px-3 py-6 text-center text-[var(--color-ink-3)]">
-                        Memuat hasil uji…
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            <!-- Regresi satu prediktor -->
-            <div class="card p-5">
-              <h3 class="text-[15px] font-semibold">Regresi satu prediktor</h3>
-              <p class="mt-1.5 text-xs leading-relaxed text-[var(--color-ink-3)]">
-                Setiap model memakai satu prediktor tanpa variabel kontrol.
-                Nilai b, R², dan p berasal dari analisis sumber.
-              </p>
-              <div id="regresi-isi" class="mt-3 text-sm text-[var(--color-ink-3)]">
-                Menunggu hasil uji dimuat…
-              </div>
-            </div>
-
-            <!-- Registry anomali data -->
-            <div class="card p-5">
-              <h3 class="text-[15px] font-semibold">Registry anomali data</h3>
-              <p class="mt-1.5 text-xs leading-relaxed text-[var(--color-ink-3)]">
-                Kasus nilai di luar skala atau tanpa keterangan yang perlu
-                diketahui sebelum angka dikutip.
-              </p>
-              <div id="anomali-isi" class="mt-3 text-sm text-[var(--color-ink-3)]">
-                Menunggu hasil uji dimuat…
-              </div>
-            </div>
-
             <div class="card border-[var(--color-warning)] p-5">
               <h3 class="flex items-center gap-2 text-[15px] font-semibold">
                 <svg viewBox="0 0 24 24" class="h-4 w-4 shrink-0 text-[var(--color-warning)]" fill="none"
@@ -708,10 +617,10 @@
                 <li>
                   <span class="font-medium text-[var(--color-ink)]">Tidak ada determinan yang signifikan.</span>
                   Dengan n = 14 kecamatan, tidak satu pun dari 95 variabel —
-                  sanitasi maupun lainnya — signifikan setelah koreksi FDR
-                  (lihat panel Uji determinan). Korelasi antar-kecamatan yang
-                  tampak pada tabel harus dibaca sebagai petunjuk eksploratif,
-                  bukan bukti hubungan sebab-akibat.
+                  sanitasi maupun lainnya — signifikan setelah koreksi FDR.
+                  Korelasi antar-kecamatan yang tampak pada tabel harus dibaca
+                  sebagai petunjuk eksploratif, bukan bukti hubungan
+                  sebab-akibat.
                 </li>
                 <li>
                   <span class="font-medium text-[var(--color-ink)]">Skala analisis tingkat kecamatan.</span>
