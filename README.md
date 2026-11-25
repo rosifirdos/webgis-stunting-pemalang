@@ -39,8 +39,10 @@ webgis-stunting-pemalang/
 │  ├─ data/
 │  │  ├─ kecamatan.geojson        14 poligon + atribut (398 KB, 40 KB brotli)
 │  │  └─ kecamatan.csv            tabel atribut untuk diunduh ulang
-│  └─ media/                      6 berkas foto (WebP), total 680 KB
-│                                 · 2 hero (lebar/sempit), 2 pita, 2 masthead
+│  ├─ media/                      6 berkas foto (WebP), total 680 KB
+│  │                              · 2 hero (lebar/sempit), 2 pita, 2 masthead
+│  └─ peta/                       4 layout QGIS cetak (PNG 3507×2480)
+│                                 + varian 1200 px (WebP) untuk layar sempit
 ├─ src/
 │  ├─ main.js                    bootstrap + urutan inisialisasi
 │  ├─ styles.css                 @import "tailwindcss" + token @theme static
@@ -65,6 +67,7 @@ webgis-stunting-pemalang/
 │  │  ├─ filters.js              filter kelas kerentanan
 │  │  ├─ table.js                tabel: cari, urut, filter
 │  │  ├─ galeri.js                foto sebagai bagian tata letak + kreditnya
+│  │  ├─ galeri-peta.js           pemilih 4 peta cetak hasil QGIS
 │  │  └─ export.js               unduh GeoJSON + CSV
 │  └─ state/store.js             state tunggal (layer aktif, kecamatan terpilih)
 ├─ scripts/prepare-data.mjs      SHP/DBF → GeoJSON + CSV, tanpa GDAL
@@ -193,6 +196,28 @@ Ketentuan yang dipegang:
 
 ---
 
+## Peta
+
+Panel **Peta** memuat dua lapis peta dengan peran berbeda:
+
+1. **Peta interaktif** (`src/map/*`, Leaflet) — lapisan utama. Bisa digeser dan
+   di-zoom, berganti antara prevalensi stunting (fokus utama) dan akses
+   sanitasi layak (faktor penjelas), berganti basemap, serta diklik per
+   kecamatan. Klik satu poligon menyorot baris tabel, grafik, dan kartu
+   "Kecamatan terpilih" sekaligus; filter kelas meredupkan kecamatan yang
+   tersaring tanpa menghapusnya, supaya konteks keruangan tetap utuh.
+2. **Peta cetak (layout QGIS)** — dilipat di dalam `<details>` di bawah peta
+   interaktif. Empat gambar hasil ekspor proyek QGIS 3.44.16
+   (`../output/Pemalang_Stunting_Sanitasi_2024.qgz`) berukuran 3507 × 2480 px:
+   stunting (utama), kuadran prioritas, faktor penjelas sanitasi, dan indeks
+   kapasitas layanan. Ini yang dipakai bila legenda, anotasi, dan skala harus
+   sama persis dengan layout untuk laporan cetak.
+
+Perbedaan warna antar-keduanya disengaja dan dijelaskan di bagian
+[Catatan metodologi](#catatan-metodologi).
+
+---
+
 ## Catatan metodologi
 
 Halaman **Info** di aplikasi memuat penjelasan lengkap. Ringkasnya:
@@ -213,11 +238,12 @@ stunting hanya r = −0,22 (R² = 0,05). Nilai r dan R² ditampilkan apa adanya
 dengan keterangan netral: sanitasi bukan satu-satunya faktor penentu stunting
 pada tingkat kecamatan. Menyembunyikan angka yang lemah akan menyesatkan.
 
-**Warna web berbeda dari peta cetak.** Peta QGIS memakai ramp *Greens*, di mana
-hijau tua = stunting tertinggi — secara persepsi "hijau = baik", sehingga nilai
-terburuk justru terlihat aman. Di web, stunting memakai ramp **oranye satu hue**
-(rendah → tinggi) dan sanitasi memakai **biru**. Perbedaan ini dicatat di
-halaman Info.
+**Warna web dan peta cetak sama-sama hangat, tetapi tidak identik.** Peta QGIS
+memakai ramp **Reds** lima kelas kuantil (krem → merah tua = stunting
+tertinggi). Di web, stunting memakai ramp **oranye satu hue** dengan luminansi
+monoton dan sanitasi memakai **biru** — dua hue berbeda supaya kedua variabel
+tidak tertukar saat dibaca berdampingan. Arah maknanya tetap sama: makin gelap,
+makin buruk. Perbedaan ini dicatat di halaman Info.
 
 **Kelas ramp harus selalu teremit, jadi `@theme static` — bukan `@theme`.**
 Tailwind v4 membuang variabel `@theme` yang tidak terlihat "dipakai", dan
