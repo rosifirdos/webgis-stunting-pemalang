@@ -73,6 +73,7 @@ export function punyaVersiGelap(nama) {
 let peta = null;
 let tileLayer = null;
 let namaBasemap = "satelit";
+let pengamatUkuran = null;
 
 export function getPeta() {
   return peta;
@@ -105,7 +106,24 @@ export function buatPeta(elemen, { gelap } = {}) {
   L.control.scale({ metric: true, imperial: false, position: "bottomright" }).addTo(peta);
 
   pasangBasemap(namaBasemap, { gelap });
+  pantauUkuran(elemen);
   return peta;
+}
+
+/**
+ * Ikuti perubahan ukuran wadah peta.
+ *
+ * Di layar lebar peta dan sidebar berbagi satu baris grid: saat kartu
+ * "Kecamatan terpilih" muncul, baris itu meninggi dan wadah peta ikut
+ * meninggi. Leaflet menyimpan ukuran lama, sehingga bagian bawah peta
+ * tampak kosong sampai jendela diubah ukurannya. ResizeObserver memastikan
+ * peta menghitung ulang begitu wadahnya berubah, dari sebab apa pun.
+ */
+function pantauUkuran(elemen) {
+  if (!elemen || typeof ResizeObserver === "undefined") return;
+  pengamatUkuran?.disconnect();
+  pengamatUkuran = new ResizeObserver(() => peta?.invalidateSize());
+  pengamatUkuran.observe(elemen);
 }
 
 /**
