@@ -2,7 +2,13 @@
 /**
  * prepare-data.mjs
  * ----------------
- * Konversi Shapefile -> GeoJSON + CSV tanpa GDAL.
+ * Konversi Shapefile -> GeoJSON + CSV tanpa GDAL, lalu gabungkan atribut
+ * tambahan dari Profil Kesehatan (CSV 100 kolom).
+ *
+ * Kenapa join CSV:
+ *   DBF hanya punya 28 field. Tiga variabel kontrak v2 (ASI eksklusif, balita
+ *   ditimbang, anemia catin sebagai persen) tidak ada di DBF sama sekali, jadi
+ *   tanpa join kontrak §6.1 tidak bisa dipenuhi.
  *
  * Kenapa tidak memakai mapshaper/ogr2ogr:
  *   Mesin ini tidak punya GDAL, QGIS, maupun mapshaper terpasang, sehingga
@@ -23,6 +29,8 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { bacaCsv, kunci } from "./lib/csv.mjs";
+import { kuadran } from "../src/data/classify.js";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 // Berkas sumber mentah (Shapefile/DBF dari QGIS) tinggal di folder induk repo,
@@ -30,11 +38,14 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const SUMBER = path.resolve(ROOT, "..");
 const SRC_SHP = path.join(SUMBER, "Kecamatan_Pemalang_Stunting_Sanitasi_2024.shp");
 const SRC_DBF = path.join(SUMBER, "Kecamatan_Pemalang_Stunting_Sanitasi_2024.dbf");
+// Sumber atribut tambahan disalin ke dalam repo (scripts/sumber) supaya
+// pipeline tidak bergantung pada folder induk saat dijalankan di CI.
+const SRC_CSV = path.join(ROOT, "scripts", "sumber", "profil-kesehatan-2024.csv");
 const OUT_DIR = path.join(ROOT, "public", "data");
 const OUT_GEOJSON = path.join(OUT_DIR, "kecamatan.geojson");
 const OUT_CSV = path.join(OUT_DIR, "kecamatan.csv");
 
-for (const f of [SRC_SHP, SRC_DBF]) {
+for (const f of [SRC_SHP, SRC_DBF, SRC_CSV]) {
   if (!fs.existsSync(f)) {
     console.error(`Berkas sumber tidak ditemukan: ${f}`);
     console.error("Jalankan skrip ini dari dalam folder webgis-stunting-pemalang");
@@ -211,47 +222,187 @@ const countVertices = (geom) => {
 };
 
 // ---------------------------------------------------------------------------
-// 4. Pemetaan atribut  (27 kolom DBF -> 11 kolom web)
+// 4. Pemetaan atribut  (DBF 28 kolom + CSV 100 kolom -> kontrak §6.1)
 // ---------------------------------------------------------------------------
 const FIELDS = [
-  ["kecamatan", "WADMKC", "string"],
-  ["stunting_pct", "pct_stunt", "number"],
-  ["sanitasi_pct", "pct_sn_lyk", "number"],
-  ["stunting_jml", "stunting", "number"],
-  ["balita_ukur", "balita_tb", "number"],
-  ["sanitasi_jml", "san_layak", "number"],
-  ["jumlah_kk", "jml_kk", "number"],
-  ["jml_desa", "jml_desa", "number"],
-  ["kk_sbs_pct", "pct_sbs", "number"],
-  ["kk_ctps_pct", "pct_ctps", "number"],
-  ["pilar5_pct", "pilar5_des", "number"],
+  ["kecamatan", "WADMKC", "string", "dbf"],
+  ["stunting_pct", "pct_stunt", "number", "dbf"],
+  ["stunting_jml", "stunting", "number", "dbf"],
+  ["balita_ukur", "balita_tb", "number", "dbf"],
+  ["sanitasi_pct", "pct_sn_lyk", "number", "dbf"],
+  ["sanitasi_jml", "san_layak", "number", "dbf"],
+  ["sanitasi_aman_pct", "sanitasi_aman_pct", "number", "csv"],
+  ["jumlah_kk", "jml_kk", "number", "dbf"],
+  ["jml_desa", "jml_desa", "number", "dbf"],
+  ["asi_eksklusif_pct", "asi_eksklusif_pct", "number", "csv"],
+  ["catin_anemia_pct", "catin_anemia_pct", "number", "csv"],
+  ["balita_ds_pct", "balita_ds_pct", "number", "csv"],
+  ["kuadran", null, "derived", "-"],
+  ["idx_layanan", null, "derived", "-"],
+  // Field lama yang masih dipakai tabel/peta jelajah (tidak ada di §6.1).
+  ["kk_sbs_pct", "pct_sbs", "number", "dbf"],
+  ["kk_ctps_pct", "pct_ctps", "number", "dbf"],
+  ["pilar5_pct", "pilar5_des", "number", "dbf"],
 ];
 
-function buildProperties(row) {
+/** Angka dari CSV: kosong/NaN -> null, bukan 0 (0 bisa berarti nilai nyata). */
+function angkaCsv(csvRow, kolom) {
+  const raw = csvRow?.[kolom];
+  if (raw === undefined || String(raw).trim() === "") return null;
+  const v = Number(raw);
+  return Number.isFinite(v) ? v : null;
+}
+
+function buildProperties(row, csvRow, idxLayanan) {
   const props = {};
-  for (const [out, src, kind] of FIELDS) {
+
+  for (const [out, src, kind, sumber] of FIELDS) {
+    if (kind === "derived") continue; // diisi setelah field dasar lengkap
+
     if (kind === "number") {
-      let v = Number(row[src]);
-      if (!Number.isFinite(v)) v = 0;
+      let v;
+      if (sumber === "csv") {
+        v = angkaCsv(csvRow, src);
+        if (v === null) {
+          props[out] = null;
+          continue;
+        }
+      } else {
+        v = Number(row[src]);
+        if (!Number.isFinite(v)) v = 0;
+      }
+
       // pilar5_des tersimpan sebagai jumlah desa, bukan persen.
       if (out === "pilar5_pct") {
-        v = row.jml_desa ? round((v / row.jml_desa) * 100) : 0;
-        v = Number(v.toFixed(2));
-      } else {
-        v = Number(v.toFixed(2));
+        v = row.jml_desa ? (v / row.jml_desa) * 100 : 0;
       }
-      props[out] = v;
+      props[out] = Number(v.toFixed(2));
     } else {
-      props[out] = String(row[src] ?? "").trim();
+      props[out] = String((sumber === "csv" ? csvRow?.[src] : row[src]) ?? "").trim();
     }
   }
+
+  // Turunan: kuadran median split + indeks kapasitas layanan (4 desimal).
+  props.kuadran = kuadran(props);
+  props.idx_layanan = idxLayanan;
   return props;
+}
+
+// ---------------------------------------------------------------------------
+// 4b. Join DBF <-> CSV + indeks kapasitas layanan
+// ---------------------------------------------------------------------------
+const { rows } = readDbf(SRC_DBF);
+const csvRows = bacaCsv(fs.readFileSync(SRC_CSV, "utf8"));
+const csvByKey = new Map(csvRows.map((r) => [kunci(r.kecamatan), r]));
+
+// Validasi dua arah: setiap record DBF punya pasangan, dan tidak ada CSV yatim.
+const tanpaPasangan = rows.map((r) => r.WADMKC).filter((n) => !csvByKey.has(kunci(n)));
+const dbKey = new Set(rows.map((r) => kunci(r.WADMKC)));
+const csvYatim = csvRows.map((r) => r.kecamatan).filter((n) => !dbKey.has(kunci(n)));
+if (tanpaPasangan.length || csvYatim.length) {
+  throw new Error(
+    "Join DBF<->CSV gagal. DBF tanpa pasangan: [" +
+      tanpaPasangan.join(", ") +
+      "]; CSV tanpa pasangan: [" +
+      csvYatim.join(", ") +
+      "]"
+  );
+}
+if (rows.length !== 14) {
+  throw new Error(`Diharapkan 14 kecamatan di DBF, ditemukan ${rows.length}`);
+}
+
+const POS = [
+  "asi_eksklusif_pct",
+  "k4_pct",
+  "imunisasi_idl_pct",
+  "sanitasi_aman_pct",
+  "kk_ctps_pct",
+];
+const NEG = ["babs_terbuka_pct", "catin_anemia_pct", "bblr_pct"];
+
+/**
+ * Indeks Kapasitas Layanan: rata-rata z-skor bertanda 8 variabel.
+ *
+ * z memakai simpangan baku POPULASI (bukan sampel) supaya sama dengan
+ * perhitungan QGIS pada GPKG. Pembagi rata-rata adalah 8 (banyaknya
+ * variabel), bukan 5 dan 3: nilai GPKG `idx_determinan` hanya cocok bila
+ * seluruh variabel berbobot sama, dan membagi per kelompok membuat rentang
+ * indeks ±1,2 (bukan ±0,6) serta mengubah urutan kecamatan.
+ * Fixture di bawah dikunci ke GPKG; bila asersi gagal, rumus yang diperbaiki,
+ * bukan angkanya.
+ */
+function hitungIdxLayanan() {
+  const semua = [...POS, ...NEG];
+  const data = rows.map((r) => {
+    const c = csvByKey.get(kunci(r.WADMKC));
+    const nilai = {};
+    for (const f of semua) {
+      const v = angkaCsv(c, f);
+      if (v === null) {
+        throw new Error(`Nilai ${f} kosong untuk ${r.WADMKC}`);
+      }
+      nilai[f] = v;
+    }
+    return { nama: r.WADMKC, nilai };
+  });
+
+  const stat = {};
+  for (const f of semua) {
+    const v = data.map((d) => d.nilai[f]);
+    const mean = v.reduce((a, b) => a + b, 0) / v.length;
+    const pstdev = Math.sqrt(
+      v.reduce((a, x) => a + (x - mean) ** 2, 0) / v.length
+    );
+    stat[f] = { mean, pstdev };
+  }
+
+  const z = (d, f) => (d.nilai[f] - stat[f].mean) / stat[f].pstdev;
+
+  return new Map(
+    data.map((d) => {
+      const zPos = POS.map((f) => z(d, f));
+      const zNeg = NEG.map((f) => -z(d, f));
+      const idx = [...zPos, ...zNeg].reduce((a, b) => a + b, 0) / semua.length;
+      return [d.nama, Number(idx.toFixed(4))];
+    })
+  );
+}
+
+const idxByNama = hitungIdxLayanan();
+
+const FIXTURE_IDX = {
+  Belik: 0.59,
+  Bodeh: 0.51,
+  Pemalang: 0.33,
+  Petarukan: 0.21,
+  Moga: 0.11,
+  Taman: 0.09,
+  Bantarbolang: -0.03,
+  Ampelgading: -0.06,
+  Pulosari: -0.14,
+  Watukumpul: -0.19,
+  Comal: -0.21,
+  Randudongkal: -0.25,
+  Warungpring: -0.37,
+  Ulujami: -0.59,
+};
+
+const idxMeleset = Object.entries(FIXTURE_IDX).filter(
+  ([nama, harap]) => Math.abs(idxByNama.get(nama) - harap) > 0.01
+);
+if (idxMeleset.length) {
+  throw new Error(
+    "Fixture idx_layanan tidak cocok: " +
+      idxMeleset
+        .map(([n, h]) => `${n} harap ${h} dapat ${idxByNama.get(n)}`)
+        .join("; ")
+  );
 }
 
 // ---------------------------------------------------------------------------
 // 5. Jalankan
 // ---------------------------------------------------------------------------
-const { rows } = readDbf(SRC_DBF);
 const shapes = readShp(SRC_SHP);
 
 if (rows.length !== shapes.length) {
@@ -273,7 +424,11 @@ rows.forEach((row, i) => {
   cleanVerts += countVertices(geometry);
   features.push({
     type: "Feature",
-    properties: buildProperties(row),
+    properties: buildProperties(
+      row,
+      csvByKey.get(kunci(row.WADMKC)),
+      idxByNama.get(row.WADMKC)
+    ),
     geometry,
   });
 });
@@ -289,7 +444,7 @@ fs.writeFileSync(OUT_GEOJSON, JSON.stringify(fc));
 
 // CSV untuk unduhan (FR-INFO-02)
 const header = FIELDS.map(([out]) => out);
-const csvRows = [
+const barisCsv = [
   header.join(","),
   ...features.map((f) =>
     header
@@ -300,7 +455,7 @@ const csvRows = [
       .join(",")
   ),
 ];
-fs.writeFileSync(OUT_CSV, csvRows.join("\n") + "\n");
+fs.writeFileSync(OUT_CSV, barisCsv.join("\n") + "\n");
 
 // ---------------------------------------------------------------------------
 // 6. Laporan
@@ -311,23 +466,34 @@ const pct = rawVerts ? (((rawVerts - cleanVerts) / rawVerts) * 100).toFixed(1) :
 console.log("Konversi selesai (Node, tanpa GDAL)");
 console.log("-----------------------------------------------");
 console.log(`  fitur            : ${features.length}`);
+console.log(`  join DBF<->CSV   : ${rows.length}/14 cocok`);
+console.log(`  fixture idx      : ${Object.keys(FIXTURE_IDX).length}/14 cocok (±0,01)`);
 console.log(`  vertex asli      : ${rawVerts}`);
 console.log(`  vertex akhir     : ${cleanVerts}  (-${pct}% titik kolinear dibuang)`);
 console.log(`  ${OUT_GEOJSON}  ${kb(OUT_GEOJSON)}`);
 console.log(`  ${OUT_CSV}  ${kb(OUT_CSV)}`);
 console.log("");
+
+const hitungKuadran = {};
+for (const f of features) {
+  const q = f.properties.kuadran;
+  hitungKuadran[q] = (hitungKuadran[q] ?? 0) + 1;
+}
+console.log("Kuadran prioritas (median split):");
+for (const [q, n] of Object.entries(hitungKuadran).sort()) {
+  console.log(`  ${q.padEnd(20)} ${n}`);
+}
+console.log("");
 console.log("Ringkasan nilai (urut stunting menurun):");
-console.log("  kecamatan        stunting%   sanitasi%   kelas");
+console.log("  kecamatan        stunting%   sanitasi%   kuadran              idx");
 for (const f of [...features].sort(
   (a, b) => b.properties.stunting_pct - a.properties.stunting_pct
 )) {
   const p = f.properties;
-  const kelas =
-    p.stunting_pct >= 12.5067 ? "Tinggi" : p.stunting_pct >= 8.3233 ? "Sedang" : "Rendah";
   console.log(
     `  ${p.kecamatan.padEnd(16)} ${String(p.stunting_pct).padStart(7)} ${String(
       p.sanitasi_pct
-    ).padStart(11)}   ${kelas}`
+    ).padStart(11)}   ${p.kuadran.padEnd(20)} ${String(p.idx_layanan).padStart(7)}`
   );
 }
 
@@ -392,3 +558,11 @@ if (over100.length) {
   console.log("  Penyebab: penyebut jumlah_kk tidak konsisten antar-puskesmas.");
   console.log("  Ditampilkan apa adanya + dicatat di halaman Metodologi.");
 }
+
+// ---------------------------------------------------------------------------
+// 8. Turunan untuk panel Info
+//    Dipanggil paling akhir supaya `npm run prepare-data` tetap satu perintah,
+//    dan kegagalan join/geometri di atas menghentikan seluruh pipeline sebelum
+//    determinan.json ikut ditulis.
+// ---------------------------------------------------------------------------
+await import("./prepare-determinan.mjs");

@@ -1,0 +1,96 @@
+variabel,kelompok,n,r_pearson,rho,p_value,arah,bisa_diintervensi,fdr,signif_fdr005
+stunting_jml,Konteks,14,0.696,0.626,0.0165,searah,False,0.727,False
+kn1_pct,Neonatal,14,-0.208,-0.605,0.0218,berlawanan,True,0.727,False
+neonatal_komplikasi_ditangani_pct,Neonatal,14,-0.424,-0.534,0.0492,berlawanan,True,0.727,False
+luas_km2,Konteks,14,0.613,0.534,0.0492,searah,False,0.727,False
+kk_ctps_pct,Sanitasi,14,0.478,0.534,0.0492,searah,True,0.727,False
+pus_4t_pct,KB/PUS,14,-0.324,-0.524,0.0546,berlawanan,True,0.727,False
+pus_alki_pct,KB/PUS,14,-0.324,-0.524,0.0546,berlawanan,True,0.727,False
+tpp_laik_hsp_pct,Pangan/TPP,14,0.445,0.512,0.0612,searah,True,0.727,False
+kk_pammrt_pct,Sanitasi,14,0.45,0.473,0.088,searah,True,0.929,False
+tpp_terdaftar_jml,Lainnya,14,-0.307,-0.444,0.1113,berlawanan,False,0.994,False
+balita_ds_pct,Lainnya,14,-0.539,-0.429,0.1263,berlawanan,False,0.994,False
+catin_anemia_pct,Catin,14,-0.55,-0.398,0.159,berlawanan,True,0.994,False
+catin_anemia_jml,Lainnya,14,-0.194,-0.385,0.174,berlawanan,False,0.994,False
+desa_uci_pct,Imunisasi,14,0.294,0.378,0.1822,searah,True,0.994,False
+tb_anak_jml,Penyakit infeksi,14,0.561,0.337,0.2387,searah,True,0.994,False
+prematur_pct,Bayi baru lahir,14,-0.23,-0.328,0.2525,berlawanan,False,0.994,False
+kepadatan_penduduk,Konteks,14,-0.287,-0.327,0.2531,berlawanan,False,0.994,False
+sarana_air_aman_pct,Air minum,14,0.436,0.316,0.2712,searah,True,0.994,False
+diare_balita_jml,Lainnya,14,0.09,-0.31,0.2809,berlawanan,False,0.994,False
+imd_pct,Gizi bayi,14,0.1,0.305,0.2882,searah,True,0.994,False
+balita_sdidtk_pct,Posyandu,14,-0.52,-0.288,0.3182,berlawanan,True,0.994,False
+tpp_laik_hsp_jml,Lainnya,14,-0.071,-0.253,0.3833,berlawanan,False,0.994,False
+prematur_jml,Lainnya,14,-0.161,-0.247,0.3952,berlawanan,False,0.994,False
+babs_terbuka_pct,Sanitasi,14,-0.248,-0.241,0.4069,berlawanan,True,0.994,False
+babs_tertutup_pct,Sanitasi,14,-0.248,-0.241,0.4069,berlawanan,True,0.994,False
+bumil_ttd_pct,Kesehatan ibu,14,0.261,0.24,0.4094,searah,True,0.994,False
+kk_pammrt_jml,Lainnya,14,0.395,0.218,0.4549,searah,False,0.994,False
+kk_psrt_pct,Sanitasi,14,0.303,0.209,0.4738,searah,True,0.994,False
+sanitasi_bersama_jml,Lainnya,14,-0.062,-0.204,0.4833,berlawanan,False,0.994,False
+gizi_kurang_jml,Lainnya,14,0.073,-0.204,0.4833,berlawanan,False,0.994,False
+balita_timbang,Lainnya,14,-0.218,-0.2,0.493,berlawanan,False,0.994,False
+tb_diukur,Lainnya,14,-0.218,-0.2,0.493,berlawanan,False,0.994,False
+balita_ditimbang_jml,Konteks,14,-0.218,-0.2,0.493,berlawanan,False,0.994,False
+tb_terduga_dilayani,Lainnya,14,0.224,0.196,0.5028,searah,False,0.994,False
+balita_dipantau_pct,Posyandu,14,-0.191,-0.187,0.5225,berlawanan,True,0.994,False
+balita_mtbs_pct,Manajemen kasus,14,-0.348,-0.187,0.5225,berlawanan,True,0.994,False
+k1_pct,Kesehatan ibu,14,-0.137,-0.182,0.5325,berlawanan,True,0.994,False
+sanitasi_bersama_pct,Sanitasi,14,-0.234,-0.174,0.5528,berlawanan,True,0.994,False
+vit_a_balita_pct,Gizi bayi,14,-0.247,-0.172,0.5574,berlawanan,True,0.994,False
+catin_gizi_kurang_pct,Catin,14,-0.225,-0.165,0.5733,berlawanan,True,0.994,False
+catin_terdaftar_jml,Lainnya,14,0.309,0.165,0.5733,searah,False,0.994,False
+dpt3_pct,Imunisasi,14,-0.206,-0.16,0.5838,berlawanan,True,0.994,False
+bb_kurang_pct,Status gizi lain,14,0.289,0.16,0.5838,searah,False,0.994,False
+sanitasi_aman_jml,Lainnya,14,0.278,-0.156,0.5954,berlawanan,False,0.994,False
+sarana_air_aman_jml,Lainnya,14,0.1,0.15,0.6093,searah,False,0.994,False
+catin_layanan_kes_pct,Catin,14,0.133,0.147,0.6154,searah,True,0.994,False
+sanitasi_layak_jml,Lainnya,14,-0.016,-0.138,0.6369,berlawanan,False,0.994,False
+catin_layanan_kes_jml,Lainnya,14,0.3,0.134,0.6477,searah,False,0.994,False
+diare_balita_pct,Penyakit infeksi,14,-0.175,-0.134,0.6477,berlawanan,True,0.994,False
+kf_lengkap_pct,Kesehatan ibu,14,0.122,0.134,0.6477,searah,True,0.994,False
+sanitasi_aman_pct,Sanitasi,14,0.195,-0.133,0.6495,berlawanan,True,0.994,False
+total_akses_sanitasi_jml,Lainnya,14,0.137,-0.13,0.6586,berlawanan,False,0.994,False
+sanitasi_belum_layak_jml,Lainnya,14,0.219,-0.128,0.6621,berlawanan,False,0.994,False
+desa_5pilar_stbm_pct,Sanitasi,14,-0.016,-0.127,0.6657,berlawanan,True,0.994,False
+pneumonia_balita_jml,Penyakit infeksi,14,0.067,-0.125,0.6696,berlawanan,True,0.994,False
+pus_jml,Lainnya,14,0.152,0.125,0.6696,searah,False,0.994,False
+kk_sbs_jml,Lainnya,14,0.137,-0.125,0.6696,berlawanan,False,0.994,False
+kk_paldrt_pct,Sanitasi,14,0.293,0.121,0.6806,searah,True,0.994,False
+kelurahan_jml,Konteks,14,0.44,0.119,0.6864,searah,False,0.994,False
+kk_ctps_jml,Lainnya,14,0.33,0.112,0.7028,searah,False,0.994,False
+bblr_pct,Bayi baru lahir,14,0.092,-0.108,0.714,berlawanan,False,0.994,False
+gizi_buruk_pct,Status gizi lain,14,0.251,0.101,0.7306,searah,False,0.994,False
+sanitasi_layak_pct,Sanitasi,14,-0.223,-0.095,0.7479,berlawanan,True,0.994,False
+kk_sbs_pct,Sanitasi,14,-0.189,-0.095,0.7479,berlawanan,True,0.994,False
+bblr_jml,Lainnya,14,0.117,0.09,0.7593,searah,False,0.994,False
+desa_jml,Konteks,14,0.054,-0.088,0.7638,berlawanan,False,0.994,False
+kematian_ibu,Lainnya,14,-0.102,-0.087,0.7665,berlawanan,False,0.994,False
+nifas_vit_a_pct,Kesehatan ibu,14,0.078,0.086,0.7708,searah,True,0.994,False
+persalinan_fasyankes_pct,Kesehatan ibu,14,0.057,0.086,0.7708,searah,True,0.994,False
+desa_5pilar_stbm_jml,Lainnya,14,0.004,-0.084,0.7753,berlawanan,False,0.994,False
+kn_lengkap_pct,Neonatal,14,-0.13,-0.081,0.782,berlawanan,True,0.994,False
+bb_kurang_jml,Lainnya,14,0.239,-0.068,0.817,berlawanan,False,0.994,False
+sanitasi_belum_layak_pct,Sanitasi,14,0.218,-0.053,0.8582,berlawanan,True,0.994,False
+vit_a_bayi_pct,Gizi bayi,14,0.021,0.048,0.8705,searah,True,0.994,False
+penduduk_jml,Konteks,14,0.115,0.046,0.8755,searah,False,0.994,False
+balita_sasaran,Konteks,14,0.115,0.046,0.8755,searah,False,0.994,False
+balita_sasaran_s,Lainnya,14,0.115,0.046,0.8755,searah,False,0.994,False
+diare_target_balita,Lainnya,14,0.115,0.046,0.8755,searah,False,0.994,False
+campak_pct,Imunisasi,14,-0.025,0.042,0.8872,searah,True,0.994,False
+gizi_buruk_jml,Lainnya,14,0.202,0.04,0.8927,searah,False,0.994,False
+kk_jml,Konteks,14,0.125,0.037,0.8991,searah,False,0.994,False
+imunisasi_idl_jml,Lainnya,14,0.127,-0.037,0.8991,berlawanan,False,0.994,False
+jumlah_kk,Lainnya,14,0.125,0.037,0.8991,searah,False,0.994,False
+k4_pct,Kesehatan ibu,14,-0.021,-0.033,0.9109,berlawanan,True,0.994,False
+kk_psrt_jml,Lainnya,14,0.313,0.029,0.9228,searah,False,0.994,False
+imunisasi_idl_pct,Imunisasi,14,-0.005,0.024,0.9346,searah,True,0.994,False
+tb_kasus_jml,Penyakit infeksi,14,0.04,-0.022,0.9405,berlawanan,True,0.994,False
+bumil_jml,Lainnya,14,0.118,0.02,0.9465,searah,False,0.994,False
+catin_gizi_kurang_jml,Lainnya,14,-0.027,-0.011,0.9703,berlawanan,False,0.994,False
+gizi_kurang_pct,Status gizi lain,14,0.128,0.007,0.9822,searah,False,0.994,False
+lahir_hidup,Lainnya,14,0.127,-0.007,0.9822,berlawanan,False,0.994,False
+asi_eksklusif_pct,Gizi bayi,14,-0.074,-0.007,0.9822,berlawanan,True,0.994,False
+sarana_air_minum_jml,Air minum,14,-0.155,-0.004,0.988,berlawanan,True,0.994,False
+total_akses_sanitasi_pct,Sanitasi,14,-0.186,-0.002,0.9941,berlawanan,True,0.994,False
+kk_paldrt_jml,Lainnya,14,0.318,0.002,0.9941,searah,False,0.994,False

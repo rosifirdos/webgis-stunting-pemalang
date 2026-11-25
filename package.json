@@ -8,7 +8,8 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "prepare-data": "node scripts/prepare-data.mjs"
+    "prepare-data": "node scripts/prepare-data.mjs",
+    "prepare-peta": "node scripts/optimize-peta.mjs"
   },
   "dependencies": {
     "chart.js": "^4.4.7",
