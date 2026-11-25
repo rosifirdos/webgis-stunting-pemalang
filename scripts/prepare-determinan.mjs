@@ -61,6 +61,86 @@ if (nUnik.length !== 1) {
   throw new Error(`Kolom n tidak seragam: ${nUnik.join(", ")}`);
 }
 
+/* --------------------------------------------------------------------------
+   Regresi satu prediktor (PRD v2.0 §2.5)
+   --------------------------------------------------------------------------
+   Nilai b, R², dan p berasal dari analisis sumber, bukan dihitung ulang di
+   browser. Disimpan di JSON (bukan HTML) supaya panel Info tidak pernah
+   memuat angka statistik yang ditulis tangan.
+   -------------------------------------------------------------------------- */
+const REGRESI = [
+  { prediktor: "tb_anak_jml", b: 0.119, r2: 0.315, p: 0.037 },
+  { prediktor: "balita_ds_pct", b: -0.145, r2: 0.29, p: 0.047 },
+  { prediktor: "kk_ctps_pct", b: 0.191, r2: 0.229, p: 0.084 },
+  { prediktor: "sanitasi_layak_pct", b: -0.054, r2: 0.05, p: 0.443 },
+  { prediktor: "sanitasi_aman_pct", b: 0.064, r2: 0.038, p: 0.505 },
+  { prediktor: "asi_eksklusif_pct", b: -0.02, r2: 0.005, p: 0.801 },
+];
+
+/* --------------------------------------------------------------------------
+   Registry anomali data (PRD v2.0 §2.7)
+   --------------------------------------------------------------------------
+   Daftar variabel diambil dari PRD; nilainya dibaca ulang dari CSV sumber
+   supaya yang tampil di web tidak pernah menyimpang dari berkas yang diolah.
+   Baris terakhir (sanitasi_aman_pct mendekati nol) tidak menyebut satu
+   kecamatan, jadi anggotanya diturunkan dari data: nilai di bawah 1%.
+   -------------------------------------------------------------------------- */
+const SRC_PROFIL = path.join(ROOT, "scripts", "sumber", "profil-kesehatan-2024.csv");
+if (!fs.existsSync(SRC_PROFIL)) {
+  throw new Error(`Berkas sumber tidak ditemukan: ${SRC_PROFIL}`);
+}
+const profil = bacaCsv(fs.readFileSync(SRC_PROFIL, "utf8"));
+const petaProfil = new Map(
+  profil.map((r) => [String(r.kecamatan).trim().toLowerCase(), r])
+);
+
+const judulKecamatan = (s) =>
+  String(s).toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase());
+
+const persen = (v, desimal = 2) =>
+  `${Number(v).toLocaleString("id-ID", {
+    minimumFractionDigits: desimal,
+    maximumFractionDigits: desimal,
+  })}%`;
+
+const SPEC_ANOMALI = [
+  { variabel: "sanitasi_layak_pct", kolom: "sanitasi_layak_pct", kecamatan: "WARUNGPRING", dugaan: "pembilang ≠ penyebut" },
+  { variabel: "total_akses_sanitasi_pct", kolom: "total_akses_sanitasi_pct", kecamatan: "WARUNGPRING", dugaan: "basis KK berbeda" },
+  { variabel: "kk_sbs_pct", kolom: "kk_sbs_pct", kecamatan: "WARUNGPRING", dugaan: "basis KK berbeda" },
+  { variabel: "imd_pct", kolom: "imd_pct", kecamatan: "BODEH", dugaan: "definisi indikator" },
+  { variabel: "sarana_air_aman_pct", kolom: "sarana_air_aman_pct", kecamatan: "PEMALANG", dugaan: "sarana > jumlah terdaftar" },
+  { variabel: "desa_5pilar_stbm_pct", kolom: "desa_5pilar_stbm_pct", kecamatan: "ULUJAMI", dugaan: "desa > desa sasaran" },
+];
+
+const anomali = SPEC_ANOMALI.map((s) => {
+  const baris = petaProfil.get(s.kecamatan.toLowerCase());
+  if (!baris) throw new Error(`Kecamatan tidak ditemukan di CSV: ${s.kecamatan}`);
+  return {
+    variabel: s.variabel,
+    kecamatan: judulKecamatan(s.kecamatan),
+    nilai: persen(baris[s.kolom]),
+    dugaan: s.dugaan,
+    status: "belum dikoreksi",
+  };
+});
+
+const amanRendah = profil
+  .filter((r) => angka(r.sanitasi_aman_pct) < 1)
+  .sort((a, b) => a.sanitasi_aman_pct - b.sanitasi_aman_pct);
+if (!amanRendah.length) {
+  throw new Error("Tidak ada kecamatan dengan sanitasi_aman_pct < 1%");
+}
+const nilaiAman = amanRendah.map((r) => angka(r.sanitasi_aman_pct));
+anomali.push({
+  variabel: "sanitasi_aman_pct",
+  kecamatan: amanRendah.map((r) => judulKecamatan(r.kecamatan)).join(", "),
+  // PRD menulis 0,00%; data sumber memuat dua nilai kecil (0,03 dan 0,10)
+  // yang ikut ditampilkan agar tidak menyembunyikan ketidaktepatan.
+  nilai: `${persen(Math.min(...nilaiAman))}–${persen(Math.max(...nilaiAman))}`,
+  dugaan: "kemungkinan data belum terisi",
+  status: "belum dikoreksi",
+});
+
 const hasil = {
   meta: {
     outcome: "stunting_pct",
@@ -69,6 +149,8 @@ const hasil = {
     metode: "Pearson + Spearman + Benjamini-Hochberg",
     signif_fdr: signifFdr,
     sumber: "Profil Kesehatan Kabupaten Pemalang 2024",
+    regresi: REGRESI,
+    anomali,
   },
   variabel,
 };

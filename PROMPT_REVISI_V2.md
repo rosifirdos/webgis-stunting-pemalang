@@ -344,49 +344,10 @@ Hitung hash: `sha256sum public/peta/*.png` (Linux) atau `Get-FileHash` (Windows)
 
 ---
 
-### FASE R2 — `index.html`: peta jadi gambar
+### FASE R2 — Home menyematkan peta utama
 
-Ini fase paling terlihat. **Jangan** menghapus panel Peta lama sampai panel baru
-berfungsi; ganti isinya, bukan menambah tab keempat.
-
-#### R2.1 Panel Peta baru (§8.1, §8.2)
-
-Ganti isi `<section id="panel-peta">` menjadi dua kolom:
-
-```
-[ Kiri: segmented control 4 peta ]   [ Kanan: <figure> besar ]
- - Stunting (utama)
- - Kuadran prioritas
- - Sanitasi (faktor penjelas)
- - Kapasitas layanan
-```
-
-Persyaratan:
-
-- `role="radiogroup"` + `aria-label="Pilih peta"`, tombol `<button role="radio" aria-checked>`.
-- Gambar: `<picture>` dengan `srcset` 1200w + 3507w, `sizes="(max-width:1024px) 100vw, 70vw"`,
-  `width="3507" height="2480"`, `decoding="async"`.
-- Peta pertama: `loading="eager" fetchpriority="high"`. Sisanya `loading="lazy"`.
-- `<figcaption>` wajib memuat: judul peta, "Diekspor dari QGIS 3.44.16",
-  "Sumber: Profil Kesehatan Kabupaten Pemalang 2024", dan untuk peta sanitasi
-  tambahan: "Nilai di atas 100% ditandai * dan tidak dikoreksi."
-- Tombol "Buka ukuran penuh" → `<a href="/peta/...png" target="_blank" rel="noopener">`.
-- Indikator aktif: teks "Peta aktif: <nama> · diekspor <tanggal>".
-- Ganti `src` saat berganti peta **tanpa** memuat ulang halaman; perbarui `alt`,
-  `caption`, dan `aria-live` ("Peta diganti: Kuadran prioritas").
-- **Hapus** kontrol Leaflet dari panel ini: `#kanvas-peta`, `#basemap`,
-  `#reset-tampilan`, legenda Leaflet, kartu terpilih Leaflet.
-  Pindahkan fungsinya ke tabel (lihat R4).
-
-#### R2.2 Peta jelajah opsional (prioritas C — kerjakan hanya bila waktu tersisa)
-
-Boleh dipertahankan sebagai `<details>` "Jelajah interaktif (opsional)" di bawah
-galeri, memakai `src/map/*` yang sudah ada. Beri label tegas:
-"Peta resmi adalah gambar ekspor QGIS di atas; peta ini hanya alat bantu jelajah."
-Bila tidak dikerjakan: hapus pemanggilan `buatPeta`/`gambarChoropleth` dari `main.js`
-dan biarkan modul `src/map/*` tidak terpakai (jangan dihapus — masih rujukan).
-
-#### R2.3 Home menyematkan peta utama
+Panel Peta tetap memakai peta Leaflet yang sudah ada; tidak ada perintah untuk
+mengganti panel tersebut menjadi gambar statis.
 
 Di `panel-home`, setelah blok KPI dan sebelum grafik bar, tambahkan `<figure>` yang
 menunjuk `peta-stunting-utama.png` dengan caption ringkas. Jangan menduplikasi
@@ -395,11 +356,8 @@ menunjuk `peta-stunting-utama.png` dengan caption ringkas. Jangan menduplikasi
 **Gerbang R2:**
 ```bash
 npm run build
-grep -c "public/peta\|/peta/" index.html      # minimal 4
-grep -c "<figcaption" index.html               # minimal 5 (4 peta + 1 home)
-grep -c "Faktor penjelas" index.html           # minimal 1
+grep -c "peta-stunting-utama" index.html   # minimal 1
 ```
-Dan pastikan **tidak ada** lagi `id="kanvas-peta"` di `index.html`.
 
 ---
 

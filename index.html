@@ -607,9 +607,9 @@
             <div class="card p-5">
               <h3 class="text-[15px] font-semibold">Latar belakang</h3>
               <p class="mt-2 text-sm leading-relaxed text-[var(--color-ink-2)]">
-                Kabupaten Pemalang menghadapi dua tantangan kesehatan masyarakat
-                yang saling terkait: prevalensi balita stunting dan ketimpangan
-                akses terhadap fasilitas sanitasi layak di 14 kecamatan.
+                Kabupaten Pemalang menghadapi persoalan gizi kronis yang perlu
+                dibaca bersama kondisi layanan dasarnya. <span class="font-medium text-[var(--color-ink)]">Stunting sebagai
+                fokus studi; sanitasi sebagai faktor penjelas.</span>
                 Analisis statistik konvensional belum mampu menggambarkan dimensi
                 keruangan dan variasi lokal antar-wilayah, sehingga diperlukan
                 visualisasi spasial untuk mengidentifikasi kawasan prioritas
@@ -658,16 +658,109 @@
                 <li class="flex gap-3">
                   <span
                     class="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-[var(--color-canvas)] text-xs font-medium text-[var(--color-ink-2)]">3</span>
-                  <span>Analisis dan klasifikasi kelas kerentanan di QGIS,
-                    menghasilkan peta tematik choropleth.</span>
+                  <span>Analisis dan klasifikasi lima kelas kuantil di QGIS,
+                    lalu ekspor layout peta ke <code>public/peta/</code>.</span>
                 </li>
                 <li class="flex gap-3">
                   <span
                     class="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-[var(--color-canvas)] text-xs font-medium text-[var(--color-ink-2)]">4</span>
                   <span>Konversi Shapefile ke GeoJSON dengan penyederhanaan
-                    geometri, lalu publikasi sebagai Web GIS interaktif ini.</span>
+                    geometri. GeoJSON memasok tabel, grafik, dan unduhan;
+                    peta utama memakai gambar ekspor QGIS, bukan render
+                    browser.</span>
                 </li>
               </ol>
+            </div>
+
+            <!-- Uji determinan: tabel baru dimuat saat tab Info dibuka. -->
+            <div class="card p-5">
+              <h3 class="text-[15px] font-semibold">Uji determinan</h3>
+              <p class="mt-2 text-sm leading-relaxed text-[var(--color-ink-2)]">
+                Dengan 14 kecamatan dan 95 uji, tidak ada variabel yang signifikan setelah koreksi FDR. Hasil ini eksploratif.
+              </p>
+              <p id="determinan-meta" class="mt-2 text-xs leading-relaxed text-[var(--color-ink-3)]">
+                Hasil uji dimuat saat tab Info dibuka.
+              </p>
+
+              <div class="mt-4 flex flex-wrap items-end gap-x-5 gap-y-3" role="group"
+                aria-label="Filter uji determinan">
+                <div class="flex items-center gap-2">
+                  <label for="determinan-kelompok"
+                    class="text-[13px] font-medium text-[var(--color-ink-2)]">Kelompok</label>
+                  <select id="determinan-kelompok"
+                    class="rounded-md border border-[var(--color-hairline)] bg-[var(--color-surface)] px-2.5 py-1.5 text-sm">
+                    <option value="">Semua kelompok</option>
+                  </select>
+                </div>
+
+                <label class="flex items-center gap-2 text-[13px] text-[var(--color-ink-2)]">
+                  <input id="determinan-actionable" type="checkbox"
+                    class="h-4 w-4 rounded border-[var(--color-hairline)]" />
+                  Hanya yang bisa diintervensi
+                </label>
+
+                <div class="flex items-center gap-2">
+                  <label for="determinan-cari"
+                    class="text-[13px] font-medium text-[var(--color-ink-2)]">Cari variabel</label>
+                  <input id="determinan-cari" type="search" placeholder="mis. sanitasi" autocomplete="off"
+                    class="w-40 rounded-md border border-[var(--color-hairline)] bg-[var(--color-surface)] px-2.5 py-1.5 text-sm placeholder:text-[var(--color-ink-3)]" />
+                </div>
+
+                <p id="determinan-jumlah" class="ml-auto text-[12px] text-[var(--color-ink-3)]"
+                  aria-live="polite"></p>
+              </div>
+
+              <div class="mt-3 max-h-[30rem] overflow-auto rounded-lg border border-[var(--color-hairline)]">
+                <table class="w-full min-w-[46rem] text-sm">
+                  <caption class="sr-only">
+                    Hasil uji variabel determinan terhadap prevalensi stunting,
+                    diurutkan menurut nilai p menaik
+                  </caption>
+                  <thead class="sticky top-0 bg-[var(--color-surface)]">
+                    <tr class="border-b border-[var(--color-hairline)] text-left text-xs text-[var(--color-ink-3)]">
+                      <th class="px-3 py-2 font-medium">Variabel</th>
+                      <th class="px-3 py-2 font-medium">Kelompok</th>
+                      <th class="px-3 py-2 text-right font-medium">r</th>
+                      <th class="px-3 py-2 text-right font-medium">ρ</th>
+                      <th class="px-3 py-2 text-right font-medium">p</th>
+                      <th class="px-3 py-2 text-right font-medium">FDR</th>
+                      <th class="px-3 py-2 font-medium">Arah</th>
+                      <th class="px-3 py-2 text-center font-medium">Actionable</th>
+                    </tr>
+                  </thead>
+                  <tbody id="determinan-tbody">
+                    <tr>
+                      <td colspan="8" class="px-3 py-6 text-center text-[var(--color-ink-3)]">
+                        Memuat hasil uji…
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Regresi satu prediktor -->
+            <div class="card p-5">
+              <h3 class="text-[15px] font-semibold">Regresi satu prediktor</h3>
+              <p class="mt-1.5 text-xs leading-relaxed text-[var(--color-ink-3)]">
+                Setiap model memakai satu prediktor tanpa variabel kontrol.
+                Nilai b, R², dan p berasal dari analisis sumber.
+              </p>
+              <div id="regresi-isi" class="mt-3 text-sm text-[var(--color-ink-3)]">
+                Menunggu hasil uji dimuat…
+              </div>
+            </div>
+
+            <!-- Registry anomali data -->
+            <div class="card p-5">
+              <h3 class="text-[15px] font-semibold">Registry anomali data</h3>
+              <p class="mt-1.5 text-xs leading-relaxed text-[var(--color-ink-3)]">
+                Kasus nilai di luar skala atau tanpa keterangan yang perlu
+                diketahui sebelum angka dikutip.
+              </p>
+              <div id="anomali-isi" class="mt-3 text-sm text-[var(--color-ink-3)]">
+                Menunggu hasil uji dimuat…
+              </div>
             </div>
 
             <div class="card border-[var(--color-warning)] p-5">
@@ -708,11 +801,11 @@
                   ini, sehingga intervensi tetap memerlukan data tingkat desa.
                 </li>
                 <li>
-                  <span class="font-medium text-[var(--color-ink)]">Kelas kerentanan memakai selang seragam.</span>
-                  Kelas Rendah, Sedang, dan Tinggi dibagi dengan interval sama
-                  dari nilai minimum ke maksimum (bukan
-                  <em>natural breaks</em>), agar konsisten dengan klasifikasi
-                  peta pada laporan.
+                  <span class="font-medium text-[var(--color-ink)]">Kelas memakai kuantil, bukan interval sama lebar.</span>
+                  Lima kelas kuantil; batas sama dengan peta QGIS. Artinya tiap
+                  kelas memuat jumlah kecamatan yang kurang lebih sama, sehingga
+                  lebar rentang antarkelas tidak identik dan tidak boleh
+                  dibandingkan sebagai satuan tetap.
                 </li>
               </ul>
             </div>
@@ -764,11 +857,13 @@
                 </div>
                 <div>
                   <dt class="font-medium text-[var(--color-ink)]">
-                    Kelas kerentanan
+                    Kelas stunting (5 kuantil)
                   </dt>
-                  <dd class="mt-0.5 text-xs leading-relaxed text-[var(--color-ink-2)]">
-                    Rendah &lt; 8,32% · Sedang 8,32–12,51% · Tinggi ≥ 12,51%
-                    prevalensi stunting.
+                  <!-- Batas kelas dirender dari KELAS_STUNTING di src/ui/info.js,
+                       supaya tidak bisa berbeda dengan peta dan tabel. -->
+                  <dd id="info-kelas-definisi"
+                    class="mt-1 flex flex-col gap-1 text-xs leading-relaxed text-[var(--color-ink-2)]">
+                    —
                   </dd>
                 </div>
               </dl>

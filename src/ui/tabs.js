@@ -6,9 +6,15 @@
 
 const URUTAN = ["home", "peta", "info"];
 let saatPetaAktif = null;
+let saatInfoAktif = null;
 
 export function onPetaAktif(fn) {
   saatPetaAktif = fn;
+}
+
+/** Panel Info memuat determinan.json secara lazy saat pertama kali dibuka. */
+export function onInfoAktif(fn) {
+  saatInfoAktif = fn;
 }
 
 function aktifkan(nama, { fokus = false } = {}) {
@@ -27,6 +33,7 @@ function aktifkan(nama, { fokus = false } = {}) {
   }
 
   if (nama === "peta" && saatPetaAktif) saatPetaAktif();
+  if (nama === "info" && saatInfoAktif) saatInfoAktif();
   if (fokus) document.getElementById(`panel-${nama}`)?.focus({ preventScroll: true });
 
   window.scrollTo({ top: 0, behavior: "instant" in window ? "instant" : "auto" });
