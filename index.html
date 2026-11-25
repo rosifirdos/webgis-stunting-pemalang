@@ -278,9 +278,8 @@
           <div class="overflow-x-auto">
             <table class="w-full text-sm">
               <caption class="sr-only">
-                Prevalensi stunting, kelas lima kuantil, tingkat prioritas,
-                dan indeks kapasitas layanan per kecamatan
-                di Kabupaten Pemalang 2024
+                Prevalensi stunting, kelas lima kuantil, dan tingkat prioritas
+                per kecamatan di Kabupaten Pemalang 2024
               </caption>
               <thead>
                 <tr class="border-b border-[var(--color-hairline)] text-left text-xs text-[var(--color-ink-2)]">
@@ -505,8 +504,8 @@
             Metodologi &amp; Sumber Data
           </h2>
           <p class="mt-1.5 max-w-[62ch] text-[13px] leading-relaxed text-white/80">
-            Bagaimana peta dan angka pada aplikasi ini dihasilkan, serta
-            keterbatasan yang perlu diketahui.
+            Bagaimana peta dan angka pada aplikasi ini dihasilkan, apa yang bisa
+            dibaca di tiap panel, serta keterbatasan yang perlu diketahui.
           </p>
           <p class="mt-6 border-t border-white/15 pt-3 text-[11px] leading-snug text-white/70" data-kredit="info"></p>
         </div>
@@ -522,10 +521,11 @@
                 dibaca bersama kondisi layanan dasarnya. <span class="font-medium text-[var(--color-ink)]">Stunting
                 sebagai fokus studi; 95 determinan — termasuk sanitasi — diuji
                 sebagai faktor penjelasnya.</span>
-                Analisis statistik konvensional belum mampu menggambarkan dimensi
-                keruangan dan variasi lokal antar-wilayah, sehingga diperlukan
-                visualisasi spasial untuk mengidentifikasi kawasan prioritas
-                intervensi.
+                Sembilan di antaranya tersedia per kecamatan dan dipetakan di
+                aplikasi ini. Analisis statistik konvensional belum mampu
+                menggambarkan dimensi keruangan dan variasi lokal antar-wilayah,
+                sehingga diperlukan visualisasi spasial untuk mengidentifikasi
+                kawasan prioritas intervensi.
               </p>
             </div>
 
@@ -539,7 +539,10 @@
                     — Dinas Kesehatan Kabupaten Pemalang. Menjadi sumber angka
                     stunting (Tabel 48), akses fasilitas sanitasi (Tabel 81),
                     STBM 5 pilar (Tabel 82), dan data calon pengantin
-                    (Tabel 53).
+                    (Tabel 53), serta tabel lain dalam profil yang sama untuk
+                    variabel determinan: sanitasi aman, ASI eksklusif, cakupan
+                    penimbangan balita, KK stop BABS, KK CTPS, dan desa 5 pilar
+                    STBM.
                   </span>
                 </li>
                 <li class="flex gap-2">
@@ -570,18 +573,48 @@
                 <li class="flex gap-3">
                   <span
                     class="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-[var(--color-canvas)] text-xs font-medium text-[var(--color-ink-2)]">3</span>
-                  <span>Analisis dan klasifikasi lima kelas kuantil di QGIS,
-                    lalu ekspor layout peta ke <code>public/peta/</code>.</span>
+                  <span>Klasifikasi lima kelas kuantil dan empat tingkat prioritas
+                    di QGIS. Break prevalensi stunting dipakai ulang di web agar
+                    warna peta layar sama dengan peta cetak; layout peta
+                    diekspor ke <code>public/peta/</code> sebagai lampiran
+                    cetak.</span>
                 </li>
                 <li class="flex gap-3">
                   <span
                     class="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-[var(--color-canvas)] text-xs font-medium text-[var(--color-ink-2)]">4</span>
                   <span>Konversi Shapefile ke GeoJSON dengan penyederhanaan
-                    geometri. GeoJSON memasok peta Leaflet, tabel, grafik,
-                    dan unduhan; lampiran cetak tetap diekspor terpisah dari
-                    QGIS.</span>
+                    geometri. GeoJSON menjadi satu-satunya sumber data untuk
+                    peta Leaflet, tabel, grafik, dan unduhan. Klasifikasi layer
+                    determinan dihitung ulang di peramban dari 14 nilai
+                    kecamatan, sehingga tidak ada break yang ditulis tangan.</span>
                 </li>
               </ol>
+            </div>
+
+            <div class="card p-5">
+              <h3 class="text-[15px] font-semibold">Struktur aplikasi</h3>
+              <ul class="mt-3 flex flex-col gap-3 text-sm text-[var(--color-ink-2)]">
+                <li>
+                  <span class="font-medium text-[var(--color-ink)]">Home</span>
+                  — tiga kartu ringkasan (rerata prevalensi, jumlah kecamatan
+                  Prioritas Utama, jumlah Prioritas Menengah), filter kelas dan
+                  pencarian, grafik peringkat, serta tabel per kecamatan yang
+                  dapat diurutkan dan dibuka per baris.
+                </li>
+                <li>
+                  <span class="font-medium text-[var(--color-ink)]">Peta</span>
+                  — empat layer: prevalensi stunting (lima kelas kuantil),
+                  determinan (sembilan variabel pilihan), tingkat prioritas
+                  (empat kategori), dan indeks kapasitas layanan. Klik satu
+                  poligon untuk membuka popup dan kartu kecamatan terpilih;
+                  basemap dapat diganti.
+                </li>
+                <li>
+                  <span class="font-medium text-[var(--color-ink)]">Info</span>
+                  — sumber data, alur pengolahan, definisi indikator, dan
+                  keterbatasan yang perlu diketahui.
+                </li>
+              </ul>
             </div>
 
             <div class="card border-[var(--color-warning)] p-5">
@@ -606,15 +639,25 @@
                   mungkin adalah ketidaksesuaian penyebut jumlah keluarga antara
                   baris puskesmas yang cakupan wilayahnya tidak identik dalam
                   Tabel 81. Angka ini sebaiknya dibaca sebagai
-                  <em>capaian program</em>, bukan proporsi rumah tangga.
+                  <em>capaian program</em>, bukan proporsi rumah tangga. Di
+                  aplikasi, nilai di atas 100% tetap memakai kelas warna
+                  tertinggi dan diberi tanda ⚠ pada popup.
                 </li>
                 <li>
                   <span class="font-medium text-[var(--color-ink)]">Tidak ada determinan yang signifikan.</span>
-                  Dengan n = 14 kecamatan, tidak satu pun dari 95 variabel —
-                  sanitasi maupun lainnya — signifikan setelah koreksi FDR.
-                  Korelasi antar-kecamatan yang tampak pada tabel harus dibaca
-                  sebagai petunjuk eksploratif, bukan bukti hubungan
-                  sebab-akibat.
+                  Sembilan determinan yang dapat dipetakan hanyalah bagian dari
+                  95 variabel yang diuji; dengan n = 14 kecamatan, tidak satu pun
+                  signifikan setelah koreksi FDR. Peta determinan karena itu
+                  menunjukkan sebaran nilai antar-kecamatan, bukan bukti hubungan
+                  sebab-akibat dengan stunting.
+                </li>
+                <li>
+                  <span class="font-medium text-[var(--color-ink)]">Indeks kapasitas layanan bukan ukuran risiko.</span>
+                  Nilai tinggi berarti kapasitas layanan lebih baik, bukan
+                  prevalensi stunting yang lebih tinggi. Hubungan positif yang
+                  tampak (r ≈ +0,50) diduga kuat karena efek deteksi: kecamatan
+                  dengan pencatatan lebih baik menemukan lebih banyak kasus.
+                  Indeks ini tidak dipakai untuk menentukan prioritas.
                 </li>
                 <li>
                   <span class="font-medium text-[var(--color-ink)]">Skala analisis tingkat kecamatan.</span>
@@ -624,10 +667,12 @@
                 </li>
                 <li>
                   <span class="font-medium text-[var(--color-ink)]">Kelas memakai kuantil, bukan interval sama lebar.</span>
-                  Lima kelas kuantil; batas sama dengan peta QGIS. Artinya tiap
-                  kelas memuat jumlah kecamatan yang kurang lebih sama, sehingga
-                  lebar rentang antarkelas tidak identik dan tidak boleh
-                  dibandingkan sebagai satuan tetap.
+                  Prevalensi stunting memakai break tetap lima kelas yang sama
+                  dengan peta QGIS; layer determinan menghitung break kuantilnya
+                  dari 14 nilai kecamatan. Artinya tiap kelas memuat jumlah
+                  kecamatan yang kurang lebih sama, sehingga lebar rentang
+                  antarkelas tidak identik dan tidak boleh dibandingkan sebagai
+                  satuan tetap.
                 </li>
               </ul>
             </div>
@@ -640,6 +685,11 @@
               <p class="mt-1.5 text-xs leading-relaxed text-[var(--color-ink-3)]">
                 Data yang dipakai aplikasi ini tersedia untuk diunduh dan
                 diverifikasi ulang.
+              </p>
+              <p class="mt-1.5 text-xs leading-relaxed text-[var(--color-ink-3)]">
+                CSV memuat seluruh kolom sumber — termasuk sembilan determinan
+                dan indeks kapasitas layanan — tidak hanya kolom yang tampil di
+                tabel Home.
               </p>
               <div class="mt-4 flex flex-col gap-2">
                 <button type="button" data-unduh="geojson"
@@ -670,15 +720,6 @@
                 </div>
                 <div>
                   <dt class="font-medium text-[var(--color-ink)]">
-                    Akses sanitasi layak
-                  </dt>
-                  <dd class="mt-0.5 text-xs leading-relaxed text-[var(--color-ink-2)]">
-                    Persentase keluarga dengan akses fasilitas sanitasi layak
-                    (jamban sendiri atau bersama), terhadap total keluarga.
-                  </dd>
-                </div>
-                <div>
-                  <dt class="font-medium text-[var(--color-ink)]">
                     Kelas stunting (5 kuantil)
                   </dt>
                   <!-- Batas kelas dirender dari KELAS_STUNTING di src/ui/info.js,
@@ -688,22 +729,64 @@
                     —
                   </dd>
                 </div>
+                <div>
+                  <dt class="font-medium text-[var(--color-ink)]">
+                    Akses sanitasi layak
+                  </dt>
+                  <dd class="mt-0.5 text-xs leading-relaxed text-[var(--color-ink-2)]">
+                    Persentase keluarga dengan akses fasilitas sanitasi layak
+                    (jamban sendiri atau bersama), terhadap total keluarga.
+                  </dd>
+                </div>
+                <div>
+                  <dt class="font-medium text-[var(--color-ink)]">
+                    Prioritas intervensi
+                  </dt>
+                  <dd class="mt-0.5 text-xs leading-relaxed text-[var(--color-ink-2)]">
+                    Empat kategori turunan langsung dari kelas prevalensi
+                    stunting: Prioritas Utama (kelas 5), Prioritas Menengah
+                    (kelas 4), Pemantauan (kelas 3), dan Relatif Rendah
+                    (kelas 1–2).
+                  </dd>
+                </div>
+                <div>
+                  <dt class="font-medium text-[var(--color-ink)]">
+                    Indeks kapasitas layanan
+                  </dt>
+                  <dd class="mt-0.5 text-xs leading-relaxed text-[var(--color-ink-2)]">
+                    Indeks gabungan kapasitas layanan per kecamatan, dibagi
+                    menjadi lima kelas kuantil. Nilai lebih tinggi berarti
+                    kapasitas lebih baik; indeks ini bukan ukuran risiko dan
+                    tidak dipakai untuk menentukan prioritas.
+                  </dd>
+                </div>
+                <div>
+                  <dt class="font-medium text-[var(--color-ink)]">
+                    Determinan yang dipetakan
+                  </dt>
+                  <dd class="mt-0.5 text-xs leading-relaxed text-[var(--color-ink-2)]">
+                    Sembilan dari 95 variabel yang diuji: sanitasi layak,
+                    sanitasi aman, jumlah KK sanitasi layak, ASI eksklusif,
+                    catin anemia, cakupan penimbangan balita, KK stop BABS,
+                    KK CTPS, dan desa 5 pilar STBM. Semuanya diperlakukan
+                    setara, tanpa variabel utama.
+                  </dd>
+                </div>
               </dl>
             </div>
 
             <div class="card p-5">
               <h3 class="text-[15px] font-semibold">Sumber foto</h3>
               <p class="mt-1.5 text-xs leading-relaxed text-[var(--color-ink-3)]">
-                Empat foto dipakai sebagai unsur tampilan, bukan dokumentasi:
-                satu mengisi latar hero di Home, satu menjadi pita di antara
-                grafik dan tabel, dan dua mengisi kepala halaman Peta serta
-                Info. Semuanya
-                <span class="font-medium text-[var(--color-ink-2)]">bukan dokumentasi Kabupaten Pemalang</span>.
-                Kegiatan aslinya berlangsung di Kota Singkawang, Kabupaten
-                Malang, dan Kabupaten Tangerang. Lokasi asli tercetak pada
-                tempat fotonya dipakai — di dasar hero, di dasar kepala
-                halaman, dan di bawah pita — bukan disembunyikan di kaki
-                halaman. Hak cipta tetap pada masing-masing pemilik.
+                Foto dipakai sebagai unsur tampilan, bukan dokumentasi: satu
+                mengisi latar hero di Home dan satu menjadi latar kepala halaman
+                Info. Keduanya
+                <span class="font-medium text-[var(--color-ink-2)]">bukan dokumentasi Kabupaten Pemalang</span>:
+                kegiatan pada foto hero berlangsung di Kabupaten Tangerang,
+                sedangkan lokasi foto Info tidak disebutkan sumbernya. Lokasi
+                asli tercetak pada tempat fotonya dipakai — di dasar hero dan di
+                dasar kepala halaman — bukan disembunyikan di kaki halaman. Hak
+                cipta tetap pada masing-masing pemilik.
               </p>
               <ul class="mt-4 flex flex-col gap-3" data-kredit-foto></ul>
             </div>

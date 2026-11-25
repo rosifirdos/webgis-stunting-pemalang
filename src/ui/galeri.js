@@ -323,8 +323,19 @@ export function initFoto() {
 
   const daftar = document.querySelector("[data-kredit-foto]");
   if (daftar) {
+    // Daftarkan hanya foto yang slotnya benar-benar ada di index.html.
+    // Daftar kredit tidak boleh menyebut tempat pemakaian yang sudah tidak
+    // tampil di halaman.
+    const SLOT = {
+      hero: '[data-foto="hero"]',
+      band: '[data-foto="band"]',
+      peta: '[data-foto="peta"]',
+      info: '[data-foto="info"]',
+    };
     daftar.replaceChildren(
-      ...Object.entries(FOTO).map(([kunci, f]) => barisKredit(f, PERAN[kunci]))
+      ...Object.entries(FOTO)
+        .filter(([kunci]) => document.querySelector(SLOT[kunci]))
+        .map(([kunci, f]) => barisKredit(f, PERAN[kunci]))
     );
   }
 }
