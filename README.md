@@ -1,4 +1,4 @@
-# Web GIS Stunting & Sanitasi — Kabupaten Pemalang 2024
+# Web GIS Stunting Kabupaten Pemalang 2024
 
 Web GIS dan dashboard analitik untuk prevalensi balita stunting di 14
 kecamatan Kabupaten Pemalang. **Stunting adalah fokus studi; sanitasi dipakai
@@ -61,11 +61,11 @@ webgis-stunting-pemalang/
 │  ├─ tokens.js                  baca token warna dari CSS, simpan preferensi tema
 │  ├─ data/
 │  │  ├─ load.js                 fetch + cache GeoJSON
-│  │  ├─ classify.js             klasifikasi interval + lookup warna
+│  │  ├─ classify.js             kelas kuantil 5 + kuadran + indeks kapasitas
 │  │  └─ stats.js                KPI, korelasi Pearson, peringkat
 │  ├─ map/
 │  │  ├─ init.js                 peta, basemap, kontrol
-│  │  ├─ layers.js               definisi layer + ramp warna QGIS (Reds/Blues)
+│  │  ├─ layers.js               definisi 4 layer + ramp QGIS (Reds/Blues/RdYlGn/kuadran)
 │  │  ├─ choropleth.js           gaya polygon, tooltip, popup
 │  │  ├─ legend.js               legenda dinamis
 │  │  └─ interactions.js         hover, klik, sinkron tabel
@@ -88,6 +88,8 @@ webgis-stunting-pemalang/
 │  └─ prepare-determinan.mjs     uji determinan + regresi + anomali
 └─ vite.config.js
 ```
+
+Tangkapan layar desktop dan mobile untuk laporan ada di `dokumentasi/`.
 
 **Prinsip:** `src/state/store.js` adalah satu-satunya sumber kebenaran (layer
 aktif, kecamatan terpilih, filter). Peta dan grafik berlangganan store yang
@@ -214,10 +216,12 @@ Ketentuan yang dipegang:
 ## Peta
 
 Panel **Peta** memakai **peta Leaflet interaktif** (`src/map/*`) yang digambar
-dari `public/data/kecamatan.geojson`: bisa digeser, di-zoom, berganti layer
-stunting/sanitasi, berganti basemap, dan diklik per kecamatan. Klik satu
-poligon menyorot baris tabel, grafik, dan kartu "Kecamatan terpilih". Peta ini
-memakai 5 kelas Quantile dan ramp warna yang sama dengan QGIS.
+dari `public/data/kecamatan.geojson`: bisa digeser, di-zoom, berganti layer,
+berganti basemap, dan diklik per kecamatan. Empat layer tersedia di kanvas yang
+sama: **prevalensi stunting** (fokus studi), **faktor penjelas sanitasi layak**,
+**kuadran prioritas** (4 warna kategori), dan **indeks kapasitas layanan**.
+Klik satu poligon menyorot baris tabel, grafik, dan kartu "Kecamatan terpilih".
+Peta ini memakai 5 kelas Quantile dan ramp warna yang sama dengan QGIS.
 
 Empat layout **ekspor QGIS** (`public/peta/*.png`) tetap disediakan sebagai
 lampiran cetak dan gambar peta di Home. Semuanya diekspor dari proyek QGIS

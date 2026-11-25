@@ -3,7 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "description": "Web GIS interaktif prevalensi stunting & akses sanitasi layak Kabupaten Pemalang 2024",
+  "description": "Web GIS interaktif prevalensi stunting Kabupaten Pemalang 2024 dengan faktor penjelas sanitasi dan determinan lain",
   "scripts": {
     "dev": "vite",
     "build": "vite build",

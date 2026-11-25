@@ -16,6 +16,12 @@
 
 export const BREAK_STUNTING = [5.294, 7.396, 9.132, 12.176];
 export const BREAK_SANITASI = [55.506, 64.24, 71.46, 76.55];
+/**
+ * Break Indeks Kapasitas Layanan, diambil dari renderer QGIS (Quantile,
+ * 5 kelas). Enam angka di README (`-0,5877 / ... / 0,5869`) adalah min +
+ * empat break + max; empat break itulah yang dipakai di sini.
+ */
+export const BREAK_KAPASITAS = [-0.2237, -0.1262, 0.0641, 0.2566];
 export const MEDIAN_STUNTING = 8.6;
 export const MEDIAN_SANITASI = 71.33;
 
@@ -48,11 +54,28 @@ export function kelasSanitasi(pct) {
   return kelasDariBreak(pct, BREAK_SANITASI);
 }
 
+export function kelasKapasitas(idx) {
+  return kelasDariBreak(idx, BREAK_KAPASITAS);
+}
+
 /** Teks rentang tiap kelas, dibangun dari break agar tidak bisa melenceng. */
 function rentang(i, breaks) {
   if (i === 0) return `< ${desimal(breaks[0])}%`;
   if (i === breaks.length) return `≥ ${desimal(breaks[breaks.length - 1])}%`;
   return `${desimal(breaks[i - 1])} – ${desimal(breaks[i])}%`;
+}
+
+/** Rentang indeks (bukan persen); nilai kapasitas bisa negatif. */
+const bertanda = (v) =>
+  Number(v).toLocaleString("id-ID", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+
+function rentangIndeks(i, breaks) {
+  if (i === 0) return `< ${bertanda(breaks[0])}`;
+  if (i === breaks.length) return `≥ ${bertanda(breaks[breaks.length - 1])}`;
+  return `${bertanda(breaks[i - 1])} – ${bertanda(breaks[i])}`;
 }
 
 const LABEL_STUNTING = [
@@ -75,13 +98,13 @@ const LABEL_SANITASI = [
   "Kelas 5 — sangat tinggi",
 ];
 
-function susunKelas(labels, breaks, tambahanKelas5 = {}) {
+function susunKelas(labels, breaks, tambahanKelas5 = {}, rentangFn = rentang) {
   return labels.map((label, i) => ({
     tingkat: i + 1,
     label,
     min: i === 0 ? null : breaks[i - 1],
     max: i === breaks.length ? null : breaks[i],
-    keterangan: rentang(i, breaks),
+    keterangan: rentangFn(i, breaks),
     ...(i === labels.length - 1 ? tambahanKelas5 : {}),
   }));
 }
@@ -93,6 +116,60 @@ export const KELAS_SANITASI = susunKelas(LABEL_SANITASI, BREAK_SANITASI, {
   // Penanda ini yang membuat UI bisa menulis "di luar skala" tanpa menebak.
   diLuarSkala: true,
 });
+
+const LABEL_KAPASITAS = [
+  "Kelas 1 — kapasitas paling rendah",
+  "Kelas 2 — rendah",
+  "Kelas 3 — sedang",
+  "Kelas 4 — tinggi",
+  "Kelas 5 — kapasitas paling tinggi",
+];
+
+/**
+ * Indeks Kapasitas Layanan: nilai TINGGI berarti kapasitas layanan lebih baik.
+ * Ini bukan indeks risiko. Lihat catatan efek deteksi di panel Info.
+ */
+export const KELAS_KAPASITAS = susunKelas(
+  LABEL_KAPASITAS,
+  BREAK_KAPASITAS,
+  {},
+  rentangIndeks
+);
+
+/**
+ * Kuadran prioritas sebagai kategori peta. Urutan sama dengan definisi
+ * median split; `warna` persis PRD §FR-03.
+ */
+export const KATEGORI_KUADRAN = [
+  {
+    nilai: "1 Prioritas Utama",
+    label: "Prioritas Utama (kuadran 1)",
+    singkat: "Prioritas Utama",
+    ket: "stunting ≥ 8,60% · sanitasi < 71,33%",
+    warna: "#b2182b",
+  },
+  {
+    nilai: "2 Determinan Lain",
+    label: "Determinan Lain (kuadran 2)",
+    singkat: "Determinan Lain",
+    ket: "stunting ≥ 8,60% · sanitasi ≥ 71,33%",
+    warna: "#f4a582",
+  },
+  {
+    nilai: "3 Waspada",
+    label: "Waspada (kuadran 3)",
+    singkat: "Waspada",
+    ket: "stunting < 8,60% · sanitasi < 71,33%",
+    warna: "#92c5de",
+  },
+  {
+    nilai: "4 Relatif Aman",
+    label: "Relatif Aman (kuadran 4)",
+    singkat: "Relatif Aman",
+    ket: "stunting < 8,60% · sanitasi ≥ 71,33%",
+    warna: "#2166ac",
+  },
+];
 
 /** Label tanpa awalan "Kelas n — " untuk ruang sempit (popup, tooltip). */
 export function labelSingkat(tingkat, daftar = KELAS_STUNTING) {

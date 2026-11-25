@@ -128,7 +128,7 @@ async function mulai() {
     /* --- peta cetak ---------------------------------------------------------
        Galeri layout QGIS di dalam <details> tetap dilayani modul terpisah;
        peta utama di tab ini adalah kanvas Leaflet di bawah. */
-    initGaleriPeta();
+    initGaleriPeta({ rows: semua });
 
     /* --- tabel alternatif untuk kedua grafik ------------------------------ */
     const isiTabel = {

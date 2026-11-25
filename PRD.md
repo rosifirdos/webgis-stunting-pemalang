@@ -215,7 +215,7 @@ Indeks komposit z-score 8 variabel (positif: ASI, K4, imunisasi dasar, sanitasi 
 
 **Termasuk:**
 - Restrukturisasi peta & narasi ke fokus stunting
-- **Peta Leaflet interaktif 5 kelas** dan **ekspor 4 peta QGIS** sebagai lampiran cetak di `index.html`
+- **Peta Leaflet interaktif 5 kelas** 
 - Klasifikasi Quantile 5 kelas
 - Peta kuadran prioritas & kapasitas layanan
 - Panel determinan (statis, hasil uji QGIS)
@@ -510,6 +510,8 @@ Aturan berkas:
 ## 10. Kriteria Penerimaan Global
 
 Rilis v2.0 dinyatakan diterima bila **semua** terpenuhi:
+
+
 
 - [ ] Panel Peta memakai kanvas **Leaflet interaktif** (`#kanvas-peta`); peta Home tetap `<img>` yang menunjuk berkas ekspor QGIS di `public/peta/`.
 - [ ] Empat berkas ekspor tersedia: `peta-stunting-utama.png`, `peta-prioritas-stunting.png`, `peta-sanitasi-penjelas.png`, `peta-kapasitas-layanan.png`, masing-masing dengan caption + `alt` sebagai lampiran.

@@ -4,11 +4,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Web GIS Stunting &amp; Sanitasi — Kabupaten Pemalang 2024</title>
+  <title>Web GIS Stunting Kabupaten Pemalang 2024 — Faktor Determinan</title>
   <meta name="description"
-    content="Web GIS interaktif prevalensi balita stunting dan akses sanitasi layak di 14 kecamatan Kabupaten Pemalang, berdasarkan Profil Kesehatan Kabupaten Pemalang 2024." />
+    content="Web GIS interaktif prevalensi balita stunting di 14 kecamatan Kabupaten Pemalang, dengan sanitasi dan determinan lain sebagai faktor penjelas, berdasarkan Profil Kesehatan Kabupaten Pemalang 2024." />
   <meta property="og:type" content="website" />
-  <meta property="og:title" content="Web GIS Stunting & Sanitasi — Kabupaten Pemalang 2024" />
+  <meta property="og:title" content="Web GIS Stunting Kabupaten Pemalang 2024" />
   <meta property="og:description"
     content="Peta choropleth interaktif, dashboard analitik, dan data 14 kecamatan Kabupaten Pemalang." />
   <link rel="icon"
@@ -28,7 +28,7 @@
 
       <div class="min-w-0 flex-1">
         <h1 class="truncate text-[15px] font-semibold leading-tight">
-          Web GIS Stunting &amp; Sanitasi
+          Web GIS Stunting Kabupaten Pemalang
         </h1>
         <p class="truncate text-xs text-[var(--color-ink-3)]">
           Kabupaten Pemalang · Profil Kesehatan 2024
@@ -177,7 +177,7 @@
 
           <div class="card p-4">
             <p class="text-[13px] text-[var(--color-ink-2)]">
-              Prioritas Utama
+              Prioritas Utama (kuadran 1)
             </p>
             <p id="kpi-prioritas" class="mt-3 text-2xl font-semibold leading-none">
               —
@@ -189,7 +189,7 @@
 
           <div class="card p-4">
             <p class="text-[13px] text-[var(--color-ink-2)]">
-              Determinan Lain
+              Determinan Lain (kuadran 2)
             </p>
             <p id="kpi-determinan" class="mt-3 text-2xl font-semibold leading-none">
               —
@@ -411,8 +411,9 @@
     <section id="panel-peta" role="tabpanel" aria-labelledby="tab-peta" data-panel="peta" hidden>
       <!--
         Dua lapis peta:
-        1. Kanvas Leaflet interaktif (src/map/*): pan, zoom, ganti layer
-           stunting/sanitasi, basemap, dan klik kecamatan.
+        1. Kanvas Leaflet interaktif (src/map/*): pan, zoom, empat layer
+           (stunting, faktor penjelas sanitasi, kuadran prioritas, indeks
+           kapasitas layanan), basemap, dan klik kecamatan.
         2. Peta cetak hasil ekspor QGIS (public/peta/*.png) di dalam <details>,
            jadi legenda dan anotasinya sama persis dengan layout QGIS dan tetap
            tersedia sebagai gambar 3507 x 2480 px.
@@ -446,9 +447,28 @@
                   class="flex cursor-pointer items-start gap-2.5 rounded-lg border border-[var(--color-hairline)] p-2.5 transition hover:bg-[var(--color-canvas)] has-[:checked]:border-[var(--color-sanitasi-2)] has-[:checked]:bg-[var(--color-canvas)]">
                   <input type="radio" name="layer" value="sanitasi" class="mt-0.5 accent-[var(--color-sanitasi-2)]" />
                   <span class="min-w-0">
-                    <span class="block text-sm font-medium">Akses Sanitasi Layak</span>
-                    <span class="block text-xs text-[var(--color-ink-3)]">Faktor penjelas; persentase keluarga dengan
+                    <span class="block text-sm font-medium">Faktor penjelas: sanitasi layak</span>
+                    <span class="block text-xs text-[var(--color-ink-3)]">Bukan variabel setara; persentase keluarga dengan
                       sanitasi layak</span>
+                  </span>
+                </label>
+
+                <label
+                  class="flex cursor-pointer items-start gap-2.5 rounded-lg border border-[var(--color-hairline)] p-2.5 transition hover:bg-[var(--color-canvas)] has-[:checked]:border-[var(--color-hairline)] has-[:checked]:bg-[var(--color-canvas)]">
+                  <input type="radio" name="layer" value="prioritas" class="mt-0.5" />
+                  <span class="min-w-0">
+                    <span class="block text-sm font-medium">Kuadran prioritas</span>
+                    <span class="block text-xs text-[var(--color-ink-3)]">Median stunting 8,60% × median sanitasi 71,33%</span>
+                  </span>
+                </label>
+
+                <label
+                  class="flex cursor-pointer items-start gap-2.5 rounded-lg border border-[var(--color-hairline)] p-2.5 transition hover:bg-[var(--color-canvas)] has-[:checked]:border-[var(--color-hairline)] has-[:checked]:bg-[var(--color-canvas)]">
+                  <input type="radio" name="layer" value="kapasitas" class="mt-0.5" />
+                  <span class="min-w-0">
+                    <span class="block text-sm font-medium">Indeks Kapasitas Layanan</span>
+                    <span class="block text-xs text-[var(--color-ink-3)]">Bukan indeks risiko; lihat catatan efek deteksi
+                      di Info</span>
                   </span>
                 </label>
               </div>
@@ -490,19 +510,19 @@
               <dl class="mt-3 flex flex-col gap-2 text-sm">
                 <div class="flex items-baseline justify-between gap-3">
                   <dt class="text-[var(--color-ink-2)]">Stunting</dt>
-                  <dd id="terpilih-stunting" class="tnum font-medium"></dd>
+                  <dd id="terpilih-stunting" class="tnum text-right font-medium"></dd>
                 </div>
                 <div class="flex items-baseline justify-between gap-3">
                   <dt class="text-[var(--color-ink-2)]">Sanitasi layak</dt>
-                  <dd id="terpilih-sanitasi" class="tnum font-medium"></dd>
+                  <dd id="terpilih-sanitasi" class="tnum text-right font-medium"></dd>
                 </div>
                 <div class="flex items-baseline justify-between gap-3">
-                  <dt class="text-[var(--color-ink-2)]">Kasus stunting</dt>
-                  <dd id="terpilih-kasus" class="tnum font-medium"></dd>
+                  <dt class="text-[var(--color-ink-2)]">Kuadran</dt>
+                  <dd id="terpilih-kuadran" class="text-right font-medium"></dd>
                 </div>
                 <div class="flex items-baseline justify-between gap-3">
-                  <dt class="text-[var(--color-ink-2)]">Kelas</dt>
-                  <dd id="terpilih-kelas" class="font-medium"></dd>
+                  <dt class="text-[var(--color-ink-2)]">Kapasitas</dt>
+                  <dd id="terpilih-kapasitas" class="tnum text-right font-medium"></dd>
                 </div>
               </dl>
               <a id="terpilih-detail" href="#"
@@ -519,7 +539,7 @@
                  kanvas ini SETELAH tabs.js menggulir ke atas - halaman Peta
                  jadi mendarat dalam keadaan tergulir. -->
             <div id="kanvas-peta" class="h-[60vh] min-h-[420px] w-full lg:h-full lg:min-h-[520px]" role="application"
-              aria-label="Peta interaktif kecamatan Kabupaten Pemalang"></div>
+              aria-label="Peta interaktif prevalensi stunting Kabupaten Pemalang 2024, 5 kelas kuantil; dapat diganti ke faktor penjelas sanitasi, kuadran prioritas, dan indeks kapasitas layanan"></div>
 
             <!-- Legenda skala mengambang di atas peta -->
             <div
@@ -528,9 +548,9 @@
                 <span id="legenda-peta-judul"></span>
               </p>
               <div class="mt-1.5 flex items-center gap-1.5">
-                <span class="text-[10px] text-[var(--color-ink-3)]">Rendah</span>
+                <span id="legenda-peta-rendah" class="text-[10px] text-[var(--color-ink-3)]">Rendah</span>
                 <span id="legenda-peta-bar" class="h-2 w-24 rounded-sm"></span>
-                <span class="text-[10px] text-[var(--color-ink-3)]">Tinggi</span>
+                <span id="legenda-peta-tinggi" class="text-[10px] text-[var(--color-ink-3)]">Tinggi</span>
               </div>
             </div>
           </div>
@@ -562,7 +582,7 @@
                     </button>
                     <button type="button" role="radio" aria-checked="false" data-peta="prioritas" class="peta-opsi">
                       <span class="block text-sm font-medium">Kuadran prioritas</span>
-                      <span class="block text-xs text-[var(--color-ink-3)]">3 / 4 / 4 / 3 kecamatan</span>
+                      <span id="peta-prioritas-jumlah" class="block text-xs text-[var(--color-ink-3)]">4 kategori median split</span>
                     </button>
                     <button type="button" role="radio" aria-checked="false" data-peta="sanitasi" class="peta-opsi">
                       <span class="block text-sm font-medium">Faktor penjelas: sanitasi layak</span>
@@ -702,9 +722,9 @@
                   <span
                     class="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-[var(--color-canvas)] text-xs font-medium text-[var(--color-ink-2)]">4</span>
                   <span>Konversi Shapefile ke GeoJSON dengan penyederhanaan
-                    geometri. GeoJSON memasok tabel, grafik, dan unduhan;
-                    peta utama memakai gambar ekspor QGIS, bukan render
-                    browser.</span>
+                    geometri. GeoJSON memasok peta Leaflet, tabel, grafik,
+                    dan unduhan; lampiran cetak tetap diekspor terpisah dari
+                    QGIS.</span>
                 </li>
               </ol>
             </div>
@@ -944,8 +964,9 @@
   <footer
     class="mt-10 border-t border-[var(--color-hairline)] px-4 py-6 text-center text-xs text-[var(--color-ink-3)] sm:px-6">
     <p>
-      Web GIS Stunting &amp; Sanitasi Kabupaten Pemalang — Tugas Mata Kuliah
-      Sistem Informasi Geografis
+      Web GIS Stunting Kabupaten Pemalang — Tugas Mata Kuliah
+      Sistem Informasi Geografis. Sanitasi dan determinan lain dipakai
+      sebagai faktor penjelas.
     </p>
     <p class="mt-1">
       Sumber: Profil Kesehatan Kabupaten Pemalang 2024

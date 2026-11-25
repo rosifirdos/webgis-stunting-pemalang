@@ -2,7 +2,12 @@ import L from "leaflet";
 import { token } from "../tokens.js";
 import { panelAktif, warnaUntuk, nilaiTeks } from "./layers.js";
 import { angka } from "../data/stats.js";
-import { labelSingkat } from "../data/classify.js";
+import {
+  labelSingkat,
+  kelasKapasitas,
+  KELAS_STUNTING,
+  KELAS_SANITASI,
+} from "../data/classify.js";
 
 /**
  * Layer choropleth.
@@ -70,24 +75,45 @@ const barisDl = (label, nilai) =>
 function htmlPopup(feature) {
   const p = baris(feature);
   const luar = p.sanitasi_pct > 100;
+  const kelasKap = kelasKapasitas(p.idx_layanan);
+  const idxTeks = `${p.idx_layanan > 0 ? "+" : ""}${angka(p.idx_layanan, 2)}`;
 
+  // Empat baris wajib FR-08: stunting (kelas), sanitasi (kelas), kuadran,
+  // kapasitas. Angka mentah tetap ditampilkan supaya bisa dikutip.
   return `
-    <div style="min-width:196px">
+    <div style="min-width:214px">
       <p style="margin:0;font-size:14px;font-weight:600">${p.kecamatan}</p>
       <p style="margin:2px 0 0;font-size:11px;color:var(--color-ink-3)">
         Kecamatan &middot; Kabupaten Pemalang
       </p>
       <dl style="margin:10px 0 0;display:grid;grid-template-columns:auto auto;gap:5px 14px;font-size:12px">
-        ${barisDl("Stunting", `${angka(p.stunting_pct, 2)}%`)}
-        ${barisDl("Sanitasi layak", `${angka(p.sanitasi_pct, 2)}%${luar ? " *" : ""}`)}
-        ${barisDl("Kasus stunting", `${angka(p.stunting_jml)} balita`)}
-        ${barisDl("Balita diukur", angka(p.balita_ukur))}
-        ${barisDl("Kelas", `Kelas ${p.kelas}/5 — ${labelSingkat(p.kelas)}`)}
+        ${barisDl(
+          "Stunting",
+          `${angka(p.stunting_pct, 2)}%
+           <span style="font-weight:400;color:var(--color-ink-3)">(kelas ${p.kelas}/5 — ${labelSingkat(
+             p.kelas,
+             KELAS_STUNTING
+           )})</span>`
+        )}
+        ${barisDl(
+          "Sanitasi layak",
+          `${angka(p.sanitasi_pct, 2)}%${luar ? " ⚠" : ""}
+           <span style="font-weight:400;color:var(--color-ink-3)">(kelas ${p.kelasSanitasi}/5 — ${labelSingkat(
+             p.kelasSanitasi,
+             KELAS_SANITASI
+           )})</span>`
+        )}
+        ${barisDl("Kuadran", p.kuadran)}
+        ${barisDl(
+          "Kapasitas",
+          `${idxTeks}
+           <span style="font-weight:400;color:var(--color-ink-3)">(kelas ${kelasKap}/5)</span>`
+        )}
       </dl>
       ${
         luar
           ? `<p style="margin:9px 0 0;padding-top:8px;border-top:1px solid var(--color-hairline);font-size:11px;line-height:1.45;color:var(--color-ink-2)">
-               * Di atas 100% &mdash; dibaca sebagai capaian program, bukan proporsi rumah tangga.
+               ⚠ Sanitasi di atas 100% — dibaca sebagai capaian program, bukan proporsi rumah tangga.
              </p>`
           : ""
       }

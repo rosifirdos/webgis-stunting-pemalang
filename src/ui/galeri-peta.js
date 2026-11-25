@@ -1,14 +1,23 @@
 /**
  * Galeri peta hasil ekspor QGIS.
  *
- * Peta resmi adalah gambar statis dari QGIS (bukan kanvas Leaflet). Modul ini
- * hanya menukar src/srcset, alt, dan caption tanpa memuat ulang halaman.
- * Berkas rujukan tetap `public/peta/*.png`; varian WebP dipakai untuk layar
- * sempit lewat `srcset`.
+ * Ini lampiran cetak, bukan peta utama aplikasi: peta utama ada di kanvas
+ * Leaflet (lihat src/map/*). Modul ini hanya menukar src/srcset, alt, dan
+ * caption tanpa memuat ulang halaman. Berkas rujukan tetap
+ * `public/peta/*.png`; varian WebP dipakai untuk layar sempit lewat `srcset`.
  */
+
+import {
+  BREAK_STUNTING,
+  MEDIAN_STUNTING,
+  MEDIAN_SANITASI,
+} from "../data/classify.js";
+import { kuadranRingkas, angka } from "../data/stats.js";
 
 const BASE = import.meta.env.BASE_URL;
 const url = (berkas) => `${BASE}${berkas}`;
+
+const desimal = (v) => angka(v, 2);
 
 const PETA = [
   {
@@ -60,7 +69,7 @@ const TANGGAL = "25 November 2026";
 
 let aktif = PETA[0];
 
-export function initGaleriPeta() {
+export function initGaleriPeta({ rows = [] } = {}) {
   const gambar = document.getElementById("peta-gambar");
   const sumber = document.getElementById("peta-sumber");
   const picture = gambar?.closest("picture");
@@ -75,6 +84,42 @@ export function initGaleriPeta() {
   const tombol = [...document.querySelectorAll("#pemilih-peta [data-peta]")];
 
   if (!gambar || !sumber || !tombol.length) return;
+
+  // Angka di caption dihitung dari data, bukan diketik di modul ini, supaya
+  // lampiran QGIS dan kanvas Leaflet tidak bisa saling bertentangan.
+  if (rows.length) {
+    const k = kuadranRingkas(rows);
+    const urutan = [
+      "1 Prioritas Utama",
+      "2 Determinan Lain",
+      "3 Waspada",
+      "4 Relatif Aman",
+    ];
+    const jumlah = urutan.map((q) => k[q]).join(" / ");
+
+    const jumlahEl = document.getElementById("peta-prioritas-jumlah");
+    if (jumlahEl) jumlahEl.textContent = `${jumlah} kecamatan`;
+
+    const stunting = PETA.find((p) => p.id === "stunting");
+    if (stunting) {
+      stunting.keterangan =
+        `Prevalensi balita stunting per kecamatan, 5 kelas kuantil dengan batas ` +
+        `${BREAK_STUNTING.map((b) => `${desimal(b)}%`).join(" / ")}.`;
+    }
+
+    const prioritas = PETA.find((p) => p.id === "prioritas");
+    if (prioritas) {
+      prioritas.alt =
+        `Peta kuadran prioritas stunting 2024: Prioritas Utama ${k["1 Prioritas Utama"]} kecamatan, ` +
+        `Determinan Lain ${k["2 Determinan Lain"]}, Waspada ${k["3 Waspada"]}, ` +
+        `Relatif Aman ${k["4 Relatif Aman"]}`;
+      prioritas.keterangan =
+        `Empat kuadran dari median stunting ${desimal(MEDIAN_STUNTING)}% dan ` +
+        `median sanitasi layak ${desimal(MEDIAN_SANITASI)}%: ` +
+        `Prioritas Utama ${k["1 Prioritas Utama"]}, Determinan Lain ${k["2 Determinan Lain"]}, ` +
+        `Waspada ${k["3 Waspada"]}, Relatif Aman ${k["4 Relatif Aman"]} kecamatan.`;
+    }
+  }
 
   const tampilkan = (p, { umumkan = true } = {}) => {
     aktif = p;

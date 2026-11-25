@@ -1,6 +1,5 @@
 import { getState, setState } from "../state/store.js";
 import { angka } from "../data/stats.js";
-import { labelSingkat } from "../data/classify.js";
 import { isGelap } from "../tokens.js";
 import { panelAktif } from "./layers.js";
 import { pilih as pilihPeta, muatSemua } from "./choropleth.js";
@@ -18,6 +17,12 @@ import { pasangBasemap, perbaruiTemaBasemap, punyaVersiGelap } from "./init.js";
 let rowsRef = [];
 let pindahTabKe = () => {};
 
+/** Indeks kapasitas selalu bertanda, mis. "+0,33" atau "−0,21". */
+const idxTeksLayanan = (v) => {
+  const n = Number(v);
+  return `${n > 0 ? "+" : ""}${angka(n, 3)}`;
+};
+
 export function initKontrolPeta({ rows, pindahTab }) {
   rowsRef = rows;
   pindahTabKe = pindahTab ?? (() => {});
@@ -28,6 +33,8 @@ export function initKontrolPeta({ rows, pindahTab }) {
       if (!radio.checked) return;
       setState({ layer: radio.value });
       gambarLegenda();
+      const live = document.getElementById("peta-pengumuman");
+      if (live) live.textContent = `Layer peta aktif: ${panelAktif().judul}`;
     });
   }
 
@@ -95,21 +102,27 @@ function perbaruiKartuTerpilih(nama) {
   };
 
   isi("terpilih-nama", row.kecamatan);
-  isi("terpilih-stunting", `${angka(row.stunting_pct, 2)}%`);
+  isi("terpilih-stunting", `${angka(row.stunting_pct, 2)}% (kelas ${row.kelas}/5)`);
   isi(
     "terpilih-sanitasi",
-    `${angka(row.sanitasi_pct, 2)}%${row.sanitasi_pct > 100 ? " *" : ""}`
+    `${angka(row.sanitasi_pct, 2)}%${row.sanitasi_pct > 100 ? " ⚠" : ""} (kelas ${row.kelasSanitasi}/5)`
   );
-  isi("terpilih-kasus", `${angka(row.stunting_jml)} dari ${angka(row.balita_ukur)}`);
-  isi("terpilih-kelas", `Kelas ${row.kelas}/5 — ${labelSingkat(row.kelas)}`);
+  isi("terpilih-kuadran", row.kuadran);
+  isi("terpilih-kapasitas", idxTeksLayanan(row.idx_layanan));
 
   const tautan = document.getElementById("terpilih-detail");
   if (tautan) tautan.setAttribute("aria-label", `Lihat ${row.kecamatan} di tabel data`);
 
   // Judul kartu menyebut variabel yang sedang aktif supaya "terpilih" tidak
   // ambigu ketika layer diganti.
+  const JUDUL = {
+    stunting: "Stunting",
+    sanitasi: "Sanitasi",
+    prioritas: "Kuadran prioritas",
+    kapasitas: "Kapasitas layanan",
+  };
   const judul = kartu.querySelector("h3");
-  if (judul) judul.textContent = `Terpilih · ${panel.nama === "stunting" ? "Stunting" : "Sanitasi"}`;
+  if (judul) judul.textContent = `Terpilih · ${JUDUL[panel.nama] ?? panel.judul}`;
 }
 
 /** Sinkronkan ulang kartu ketika layer berganti. */
