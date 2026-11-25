@@ -31,13 +31,13 @@ Aplikasi v2.0 harus mengkomunikasikan keempat hal ini secara eksplisit, bukan me
 |---|---|---|
 | Posisi topik | Stunting + sanitasi setara | **Stunting utama**, sanitasi = faktor penjelas |
 | Klasifikasi peta | 3 kelas *equal interval* | **5 kelas Quantile** (break sesuai QGIS) |
-| Layer peta | 2 (stunting, sanitasi) | **4 gambar ekspor QGIS** (stunting, sanitasi, kuadran, kapasitas) |
+| Layer peta | 2 (stunting, sanitasi) | **Peta Leaflet 2 layer** (stunting, sanitasi) + **4 lampiran cetak ekspor QGIS** |
 | Penanda prioritas | `kelas Tinggi && sanitasi < 60` | **Kuadran 2×2 median** |
 | Panel determinan | Tidak ada | **Tabel 95 variabel + FDR** |
 | Narasi statistik | r dan R² tanpa uji signifikansi | r, p, n, **status FDR**, disclaimer |
 | Anomali data | Disebut di tab Info (narasi) | **Registry anomali terstruktur** |
 | Data determinan | Tidak dilayani | `determinan.json` dimuat lazy |
-| Sumber peta | Dirender Leaflet dari GeoJSON | **Ekspor asli QGIS (PNG)** → disematkan di `index.html` |
+| Sumber peta | Dirender Leaflet dari GeoJSON | **Leaflet interaktif** (5 kelas Quantile) + lampiran PNG ekspor QGIS |
 
 ---
 
@@ -57,14 +57,19 @@ K  : kepadatan, luas, penduduk      ← kontrol / konteks
 
 **Prinsip produk:** peta besar = stunting. Peta kecil/sekunder = penjelas. Tidak boleh ada dua peta besar yang bersaing secara visual.
 
-### 1.1 Sumber peta: ekspor asli QGIS
+### 1.1 Sumber peta: Leaflet interaktif + ekspor QGIS
 
-Peta yang tampil di website **tidak digambar ulang oleh browser**. Peta diambil langsung dari QGIS memakai fitur ekspor bawaan (bukan rendering Leaflet, bukan plugin qgis2web):
+Panel **Peta** memakai peta **Leaflet interaktif** yang digambar dari
+`public/data/kecamatan.geojson`. Peta inilah peta utama aplikasi: bisa digeser,
+di-zoom, berganti layer stunting/sanitasi, dan diklik per kecamatan.
 
-`Project → Import/Export → Export Map to Image`
-atau `Layout → Export as Image` (PNG, 200–300 dpi).
+Peta Leaflet memakai **5 kelas Quantile dengan break yang sama dengan QGIS**
+(§2.2), ramp warna yang sama (*Reds*/*Blues*), dan legenda 5 kelas di panel.
+Karena break dan ramp berasal dari satu modul (`src/data/classify.js`), warna di
+layar dan di laporan tidak berbeda.
 
-Alur produksi:
+Selain peta interaktif, QGIS tetap dipakai untuk menghasilkan **lampiran cetak**
+(gambar peta di Home dan galeri 4 layout di tab Peta):
 
 ```
 QGIS 3.44.16 (layout A4 landscape, 300 dpi)
@@ -74,15 +79,19 @@ QGIS 3.44.16 (layout A4 landscape, 300 dpi)
         ├─ Export as Image  →  public/peta/peta-sanitasi-penjelas.png
         └─ Export as Image  →  public/peta/peta-kapasitas-layanan.png
                                         │
-                                        └─  dirujuk dari index.html
+                                        └─  peta Home + galeri lampiran
 ```
 
 Konsekuensi yang harus diterima:
 
-- Peta bersifat **statis**; judul, legenda, skala, panah utara, dan sumber **terbakar di dalam gambar**.
-- Interaksi (hover, klik, tooltip) hanya tersedia pada tabel/grafik, atau pada peta jelajah opsional (§8.2).
-- Setiap perubahan angka **wajib diekspor ulang** dari QGIS; tidak ada pembaruan otomatis dari CSV.
-- Konsistensi web ↔ laporan dijamin karena keduanya memakai berkas ekspor yang sama.
+- Peta Leaflet **tidak** diklaim sebagai ekspor QGIS. Keduanya artefak berbeda
+  dengan break kelas dan ramp yang sama.
+- Lampiran QGIS bersifat **statis**; judul, legenda, skala, panah utara, dan
+  sumber tercetak di dalam gambar.
+- Setiap perubahan angka wajib memperbarui GeoJSON (`npm run prepare-data`)
+  **dan** mengekspor ulang lampiran QGIS.
+- Konsistensi peta layar ↔ laporan dijaga oleh break/ramp bersama di
+  `src/data/classify.js`, bukan oleh satu berkas gambar.
 
 ---
 
@@ -206,7 +215,7 @@ Indeks komposit z-score 8 variabel (positif: ASI, K4, imunisasi dasar, sanitasi 
 
 **Termasuk:**
 - Restrukturisasi peta & narasi ke fokus stunting
-- **Ekspor 4 peta dari QGIS (`Layout → Export as Image`) dan penyematannya di `index.html`**
+- **Peta Leaflet interaktif 5 kelas** dan **ekspor 4 peta QGIS** sebagai lampiran cetak di `index.html`
 - Klasifikasi Quantile 5 kelas
 - Peta kuadran prioritas & kapasitas layanan
 - Panel determinan (statis, hasil uji QGIS)
@@ -214,7 +223,7 @@ Indeks komposit z-score 8 variabel (positif: ASI, K4, imunisasi dasar, sanitasi 
 - Pembaruan pipeline data & unduhan
 
 **Tidak termasuk (v2.0):**
-- Editor peta di dalam browser (peta resmi hanya bisa diubah lewat QGIS)
+- Editor data peta di dalam browser (perubahan data lewat pipeline; layout cetak lewat QGIS)
 - Analisis spasial on-the-fly di browser (Moran's I, regresi spasial)
 - Dashboard admin / input data
 - Data deret waktu (hanya 2024)
@@ -227,40 +236,39 @@ Indeks komposit z-score 8 variabel (positif: ASI, K4, imunisasi dasar, sanitasi 
 
 Prioritas: **M** = Must, **S** = Should, **C** = Could.
 
-> **Keputusan arsitektur (v2.0):** peta resmi adalah **gambar hasil ekspor asli QGIS** yang disematkan di `index.html`. Peta Leaflet interaktif diturunkan menjadi **peta jelajah opsional** (prioritas C), bukan peta utama. Semua FR peta di bawah mengacu pada berkas ekspor, kecuali disebut lain.
+> **Keputusan arsitektur (v2.0):** panel **Peta** memakai **peta Leaflet interaktif** yang digambar dari `kecamatan.geojson`. Berkas PNG hasil ekspor QGIS tetap wajib ada sebagai **lampiran cetak** dan gambar peta di Home, tetapi bukan pengganti panel Peta.
 
-### FR-01 — Peta utama stunting dari ekspor QGIS (M)
+### FR-01 — Peta utama stunting interaktif (M)
 
-- Peta utama adalah **gambar hasil ekspor asli QGIS**, disimpan di `public/peta/` dan dirujuk dari **`index.html`**.
-- 5 kelas Quantile dengan break persis §2.2; legenda tercetak di dalam gambar.
-- Gambar memuat: judul, legenda 5 kelas, skala, panah utara, sumber, dan catatan metode klasifikasi.
-- Lebar tampil maksimum 100% kontainer; `alt` menyebut judul peta dan tahun.
+- Peta utama adalah **peta Leaflet interaktif** (`#kanvas-peta`) yang digambar dari `public/data/kecamatan.geojson`; ukuran dan bingkainya dihitung ulang saat tab Peta dibuka.
+- 5 kelas Quantile dengan break persis §2.2 (`BREAK_STUNTING`); legenda 5 kelas dirender di panel, tidak dilipat.
+- Peta mendukung pan, zoom, ganti basemap, dan klik kecamatan. Klik satu poligon menyorot baris tabel/grafik dan mengisi kartu "Kecamatan terpilih".
+- `aria-label`/`alt` peta menyebut judul, tahun, dan jumlah kelas.
 
-**Acceptance:** `index.html` memuat `<img>`/`<picture>` yang menunjuk berkas di `public/peta/`; tidak ada kode yang menggambar ulang kelas stunting di browser untuk peta utama.
+**Acceptance:** `index.html` memuat `#kanvas-peta`, `initPeta()` dipanggil, dan legenda menampilkan 5 kelas; tidak ada klaim bahwa peta Leaflet adalah ekspor QGIS.
 
 ### FR-02 — Sanitasi sebagai faktor penjelas (M)
 
-- Sanitasi tampil sebagai **gambar peta sekunder** hasil ekspor QGIS (bukan peta besar kedua), dirujuk dari `index.html`.
-- Label UI wajib menyebut posisinya, mis. "Faktor penjelas: sanitasi layak".
-- Nilai > 100% wajib diberi penanda di dalam gambar (mis. `*` pada label) dan dijelaskan di caption HTML, karena peta statis tidak punya tooltip.
+- Sanitasi tampil sebagai **layer kedua pada peta Leaflet yang sama** (bukan peta besar kedua), dengan label "Faktor penjelas: sanitasi layak".
+- Nilai > 100% diberi penanda `*`/`⚠` pada tooltip, popup, dan tabel, serta dijelaskan di caption panel.
 
-**Acceptance:** tidak ada teks yang menempatkan sanitasi sejajar stunting (mis. judul "Peta Stunting & Sanitasi"); string "faktor penjelas" muncul minimal sekali di panel peta.
+**Acceptance:** tidak ada teks yang menempatkan sanitasi sejajar stunting (mis. judul "Peta Stunting & Sanitasi"); string "faktor penjelas" muncul minimal sekali di panel peta; hanya ada satu kanvas peta besar.
 
 ### FR-03 — Peta kuadran prioritas (M)
 
-- Peta kuadran hasil ekspor QGIS (`peta-prioritas-stunting.png`) dengan 4 kategori warna:
+- Kuadran tampil di baris tabel yang dibuka dan di **lampiran cetak QGIS** (`peta-prioritas-stunting.png`) dengan 4 kategori warna:
   - Prioritas Utama `#b2182b`
   - Determinan Lain `#f4a582`
   - Waspada `#92c5de`
   - Relatif Aman `#2166ac`
-- Legenda menampilkan definisi median (8,60% dan 71,33%).
-- Klik poligon menampilkan kuadran + alasan ("stunting 16,69% ≥ median, sanitasi 46,45% < median").
+- Legenda lampiran menampilkan definisi median (8,60% dan 71,33%).
+- Detail baris menampilkan kuadran + alasan ("stunting 16,69% ≥ median, sanitasi 46,45% < median").
 
-**Acceptance:** jumlah kecamatan per kategori = 3 / 4 / 4 / 3.
+**Acceptance:** jumlah kecamatan per kategori = 3 / 4 / 4 / 3 dan konsisten antara tabel, CSV, serta lampiran.
 
 ### FR-04 — Peta Indeks Kapasitas Layanan (S)
 
-- Berkas ekspor QGIS `peta-kapasitas-layanan.png`, 5 kelas Quantile, ramp diverging (`RdYlGn`), nilai tinggi = kapasitas baik.
+- Indeks kapasitas tampil sebagai kolom di tabel dan sebagai lampiran cetak `peta-kapasitas-layanan.png` (5 kelas Quantile, ramp diverging `RdYlGn`, nilai tinggi = kapasitas baik).
 - **Wajib** disertai catatan: "Indeks kapasitas layanan, bukan indeks risiko. Berkorelasi positif dengan stunting (r = +0,50), diduga karena efek deteksi."
 - Dilarang memberi label "protektif"/"risiko rendah", baik di gambar maupun di caption HTML.
 
@@ -290,7 +298,7 @@ Lokasi: tab **Info**, sub-bagian baru "Uji Determinan".
 
 ### FR-08 — Informasi kontekstual per kecamatan (M)
 
-Karena peta utama berupa gambar ekspor, nilai per kecamatan tampil lewat **label yang tercetak di dalam gambar** dan **tabel/grafik** di dashboard. Bila peta jelajah opsional (§8.2) diaktifkan, popup-nya menampilkan minimal:
+Nilai per kecamatan tampil di **popup/tooltip peta Leaflet** dan di **tabel/grafik** dashboard. Popup peta menampilkan minimal:
 
 ```
 Nama kecamatan
@@ -302,7 +310,7 @@ Kapasitas       : +0,33
 
 Dengan penanda `⚠` untuk nilai > 100%.
 
-**Acceptance:** setiap gambar peta memuat label nama kecamatan + nilai; tabel dashboard menampilkan empat baris informasi yang sama untuk 14 kecamatan.
+**Acceptance:** klik poligon memunculkan keempat baris di atas; tabel dashboard menampilkan empat baris informasi yang sama untuk 14 kecamatan.
 
 ### FR-09 — Tabel, grafik, unduhan (M)
 
@@ -325,7 +333,7 @@ Tiga kalimat wajib muncul (bisa di hero, Info, dan footer peta):
 
 ### 6.1 `public/data/kecamatan.geojson`
 
-Tetap ringkas (target < 420 KB). **Catatan v2.0:** GeoJSON kini menjadi sumber untuk grafik, tabel, unduhan, dan peta jelajah **opsional** — bukan lagi sumber peta utama. Peta utama dibaca dari PNG ekspor QGIS (§6.4). Field:
+Tetap ringkas (target < 420 KB). **Catatan v2.0:** GeoJSON adalah sumber untuk grafik, tabel, unduhan, dan **peta Leaflet interaktif**. Lampiran cetak tetap dibaca dari PNG ekspor QGIS (§6.4). Field:
 
 | Field | Tipe | Sumber |
 |---|---|---|
@@ -384,13 +392,13 @@ export const MEDIAN_STUNTING = 8.60;
 export const MEDIAN_SANITASI = 71.33;
 ```
 
-### 6.4 `public/peta/` — berkas ekspor QGIS (baru, sumber peta resmi)
+### 6.4 `public/peta/` — berkas ekspor QGIS (baru, lampiran cetak & peta Home)
 
-Empat gambar yang **wajib** ada, semuanya hasil `Layout → Export as Image` dari QGIS 3.44.16:
+Empat gambar yang **wajib** ada, semuanya hasil `Layout → Export as Image` dari QGIS 3.44.16. Gambar-gambar ini **bukan** panel Peta utama (panel Peta memakai Leaflet, §8.2), melainkan lampiran cetak dan gambar peta di Home:
 
 | Berkas | Layout QGIS | Fungsi | Ukuran target |
 |---|---|---|---|
-| `peta-stunting-utama.png` | `Peta Utama Stunting 2024` | Peta utama (stunting + inset sanitasi) | ≤ 1,2 MB |
+| `peta-stunting-utama.png` | `Peta Utama Stunting 2024` | Peta Home + lampiran utama | ≤ 1,2 MB |
 | `peta-prioritas-stunting.png` | `Peta Prioritas Stunting 2024` | Kuadran prioritas 2×2 | ≤ 0,9 MB |
 | `peta-sanitasi-penjelas.png` | `Cakupan Sanitasi Layak 2024` | Faktor penjelas | ≤ 0,9 MB |
 | `peta-kapasitas-layanan.png` | *layout baru* | Indeks kapasitas layanan | ≤ 0,9 MB |
@@ -422,11 +430,11 @@ Aturan berkas:
 | Berkas | Perubahan | Risiko |
 |---|---|---|
 | `src/data/classify.js` | Ganti 3 kelas → 5 Quantile; tambah `kuadran()`; hapus `prioritas()` lama | **Tinggi** — dipakai legenda tabel & unduhan |
-| `index.html` | **Sematkan 4 gambar ekspor QGIS** (`<figure>`/`<picture>` + `srcset` + caption); panel Info: determinan, regresi, anomali | **Tinggi** — peta utama pindah dari canvas ke gambar |
+| `index.html` | **Panel Peta: Leaflet 5 kelas** (kanvas, legenda, layer, kartu terpilih); sematkan 4 lampiran QGIS (`<details>` + gambar Home); panel Info: determinan, regresi, anomali | **Tinggi** — peta utama tetap kanvas, galeri lampiran ditambah |
 | `public/peta/*.png` + `public/peta/README.md` | **Baru**; artefak ekspor QGIS + metadata ekspor (§6.4) | Sedang — harus diekspor ulang tiap data berubah |
-| `src/map/layers.js` | Opsional (peta jelajah): `PANEL` 4 entri; sanitasi "faktor penjelas"; `idx_layanan` | Rendah — tidak lagi jalur peta utama |
-| `src/map/legend.js` | Opsional: legenda 5 kelas + catatan kuadran untuk peta jelajah | Rendah |
-| `src/map/choropleth.js` | Opsional: warna per kelas baru; popup 4 baris | Rendah |
+| `src/map/layers.js` | Peta Leaflet: `PANEL` 4 entri; sanitasi "faktor penjelas"; `idx_layanan` | Rendah — jalur peta utama |
+| `src/map/legend.js` | Legenda 5 kelas + catatan kuadran untuk peta Leaflet | Rendah |
+| `src/map/choropleth.js` | Warna per kelas baru; popup 4 baris | Rendah |
 | `src/ui/kpi.js` | KPI: 3 prioritas utama, 4 determinan lain, r + p | Sedang |
 | `src/data/stats.js` | Tambah `pValue()` dan `kuadranRingkas()` | Sedang |
 | `src/charts/scatter.js` | Tampilkan p & n; label "tidak signifikan" | Rendah |
@@ -434,13 +442,13 @@ Aturan berkas:
 | `src/ui/table.js` | Kolom kuadran & kapasitas | Rendah |
 | `src/ui/galeri.js` | Tidak berubah | — |
 | `src/ui/export.js` | CSV kolom baru + metadata | Rendah |
-| `src/main.js` | Muat `determinan.json` lazy saat tab Info dibuka; init peta jelajah hanya bila diminta | Rendah |
+| `src/main.js` | Muat `determinan.json` lazy saat tab Info dibuka; peta Leaflet diinisialisasi sekali, ukuran/fit dihitung saat tab Peta dibuka | Rendah |
 | `scripts/prepare-data.mjs` | Field baru + tulis `determinan.json` | **Tinggi** — sumber data |
 | `src/data/load.js` | `muatDeterminan()` terpisah dari `muatData()` | Rendah |
 
 **Aturan migrasi:** `prepare-data.mjs` harus tetap **tanpa dependensi GDAL/QGIS**. Nilai `kuadran` dan `idx_layanan` dihitung dari CSV atribut, bukan dari GPKG, agar pipeline tetap portabel.
 
-**Aturan peta:** gambar di `public/peta/` **tidak dihasilkan** oleh `prepare-data.mjs` (butuh QGIS). Pipeline data dan pipeline peta dipisah: perintah pertama menghasilkan CSV/JSON, ekspor gambar dilakukan manual di QGIS, lalu kedua hasil diverifikasi cocok (jumlah kecamatan, nilai ekstrem, tanggal ekspor).
+**Aturan peta:** panel Peta memakai Leaflet dan digambar dari GeoJSON. Gambar di `public/peta/` **tidak dihasilkan** oleh `prepare-data.mjs` (butuh QGIS) dan hanya dipakai sebagai lampiran cetak/Home. Pipeline data dan pipeline lampiran dipisah: perintah pertama menghasilkan CSV/JSON, ekspor gambar dilakukan manual di QGIS, lalu kedua hasil diverifikasi cocok (break kelas, jumlah kecamatan, nilai ekstrem, tanggal ekspor).
 
 ---
 
@@ -451,17 +459,17 @@ Aturan berkas:
 | Tab | Isi v2 |
 |---|---|
 | **Home** | Hero stunting, 4 KPI, `peta-stunting-utama.png` dari QGIS, grafik peringkat, scatter, tabel |
-| **Peta** | Galeri 4 gambar ekspor QGIS (segmented control), caption + sumber per gambar, tautan unduh PNG; peta jelajah Leaflet = opsional |
+| **Peta** | Peta Leaflet interaktif (stunting/sanitasi), legenda 5 kelas, kartu kecamatan terpilih; galeri 4 lampiran QGIS di `<details>` |
 | **Info** | Metodologi, uji determinan, regresi, anomali data, sumber |
 
 ### 8.2 Peta
 
-- **Jalur utama (wajib):** empat gambar ekspor QGIS ditampilkan lewat `<img>`/`<picture>` di `index.html`. Pemilih peta berupa segmented control yang menukar `src` gambar aktif + caption, tanpa memuat ulang halaman.
-- Desktop: gambar peta ≥ 65% lebar konten; caption di bawah gambar, bukan overlay.
-- Mobile: gambar lebar 100%, `srcset` ke versi 1200 px; legenda TIDAK dilipat karena sudah tercetak di gambar.
-- Indikator "peta yang tampil" selalu terlihat (nama peta + tanggal ekspor).
-- Setiap gambar punya tombol "Buka ukuran penuh" / unduh PNG.
-- **Jalur opsional:** peta jelajah Leaflet (GeoJSON) boleh dipertahankan sebagai tab terpisah atau toggle "jelajah interaktif", berlabel jelas bahwa peta resmi adalah gambar QGIS. Bila tidak diaktifkan, `choropleth.js` tidak dipanggil.
+- **Jalur utama (wajib):** peta Leaflet interaktif (`#kanvas-peta`) yang digambar dari GeoJSON. Peta mengisi kolom kanan; sidebar memuat layer stunting/sanitasi, basemap, reset tampilan, legenda 5 kelas, dan kartu kecamatan terpilih.
+- Desktop: peta ≥ 65% lebar konten; legenda di samping peta, tidak dilipat.
+- Mobile: peta lebar 100% dengan tinggi minimum 420 px; sidebar menumpuk di atas peta.
+- Indikator layer aktif selalu terlihat ("Stunting" atau "Faktor penjelas: sanitasi layak") dan diumumkan lewat `aria-live`.
+- Klik poligon menyorot baris tabel/grafik dan mengisi kartu terpilih; tidak ada tooltip yang memuat angka > 100% tanpa penanda.
+- **Jalur sekunder (lampiran):** empat gambar ekspor QGIS ditampilkan lewat `<details>` di bawah peta Leaflet, dengan `srcset`, caption, sumber, dan tautan unduh PNG. Lampiran ini untuk kebutuhan cetak, bukan pengganti peta interaktif.
 
 ### 8.3 Wording (wajib)
 
@@ -474,11 +482,11 @@ Aturan berkas:
 
 ### 8.4 Aksesibilitas
 
-- Setiap peta punya alternatif tabel (sudah ada pola `data-tabel-toggle`), menggantikan kehilangan tooltip akibat peta statis.
-- Warna tidak boleh satu-satunya pembeda: sediakan pola/label teks pada legenda di dalam gambar dan di tabel.
-- Kontras teks ≥ 4,5:1; fokus keyboard terlihat pada tab, filter, dan tombol pemilih peta.
-- Setiap `<img>` peta memiliki `alt` deskriptif (nama peta, tahun, kelas, sumber).
-- `aria-live` untuk perubahan jumlah hasil filter dan untuk perubahan peta aktif.
+- Setiap peta punya alternatif tabel (sudah ada pola `data-tabel-toggle`), sehingga nilai per kecamatan tetap terbaca tanpa hover atau klik.
+- Warna tidak boleh satu-satunya pembeda: sediakan label teks pada legenda peta dan di tabel.
+- Kontras teks ≥ 4,5:1; fokus keyboard terlihat pada tab, filter, layer peta, dan tombol pemilih peta.
+- Setiap `<img>` lampiran peta memiliki `alt` deskriptif (nama peta, tahun, kelas, sumber); kanvas Leaflet punya `aria-label`.
+- `aria-live` untuk perubahan jumlah hasil filter dan untuk perubahan layer peta aktif.
 
 ---
 
@@ -487,10 +495,10 @@ Aturan berkas:
 | Aspek | Target |
 |---|---|
 | Payload awal | ≤ 450 KB (GeoJSON terkompresi ≤ 60 KB brotli) — tidak termasuk gambar peta |
-| Gambar peta | PNG asli ≤ 1,2 MB; varian `-1200.webp` ≤ 250 KB; `loading="lazy"` untuk semua kecuali peta utama |
+| Gambar peta | PNG asli ≤ 1,2 MB; varian `-1200.webp` ≤ 250 KB; `loading="lazy"` untuk semua lampiran |
 | Total gambar peta | ≤ 3,5 MB untuk 4 PNG + 4 varian WebP |
 | `determinan.json` | ≤ 25 KB, dimuat hanya saat tab Info dibuka |
-| LCP (4G) | ≤ 2,5 s (peta utama diberi `fetchpriority="high"` dan dimensi eksplisit) |
+| LCP (4G) | ≤ 2,5 s (gambar Home diberi `fetchpriority="high"` dan dimensi eksplisit; peta Leaflet dihitung ulang saat tab Peta dibuka) |
 | Interaksi peta | ≤ 100 ms per klik/hover |
 | Browser | Chrome/Edge/Firefox/Safari 2 versi terakhir |
 | Tema | Terang & gelap berfungsi penuh |
@@ -503,12 +511,12 @@ Aturan berkas:
 
 Rilis v2.0 dinyatakan diterima bila **semua** terpenuhi:
 
-- [ ] Peta utama di `index.html` adalah `<img>` yang menunjuk **berkas ekspor QGIS** di `public/peta/`, bukan kanvas yang digambar browser.
-- [ ] Empat berkas ekspor tersedia: `peta-stunting-utama.png`, `peta-prioritas-stunting.png`, `peta-sanitasi-penjelas.png`, `peta-kapasitas-layanan.png`, masing-masing dengan caption + `alt`.
+- [ ] Panel Peta memakai kanvas **Leaflet interaktif** (`#kanvas-peta`); peta Home tetap `<img>` yang menunjuk berkas ekspor QGIS di `public/peta/`.
+- [ ] Empat berkas ekspor tersedia: `peta-stunting-utama.png`, `peta-prioritas-stunting.png`, `peta-sanitasi-penjelas.png`, `peta-kapasitas-layanan.png`, masing-masing dengan caption + `alt` sebagai lampiran.
 - [ ] `public/peta/README.md` mencatat tanggal ekspor, versi QGIS, nama layout, dan SHA-256 tiap berkas.
-- [ ] Peta stunting memakai 5 kelas Quantile dengan break persis §2.2 (diperiksa pada gambar, bukan dihitung ulang di browser).
+- [ ] Peta stunting memakai 5 kelas Quantile dengan break persis §2.2 (dihitung dari `BREAK_STUNTING`, sama dengan lampiran QGIS).
 - [ ] Tidak ada UI yang menempatkan sanitasi sejajar stunting sebagai peta utama.
-- [ ] Kuadran prioritas tersedia dan jumlah per kategori 3/4/4/3 (cocok antara gambar, tabel, dan CSV).
+- [ ] Kuadran prioritas tersedia dan jumlah per kategori 3/4/4/3 (cocok antara tabel, CSV, dan lampiran).
 - [ ] Panel determinan memuat 95 variabel dengan kolom r, ρ, p, FDR.
 - [ ] Kalimat "0 dari 95 signifikan setelah koreksi FDR" tampil di panel determinan.
 - [ ] Indeks kapasitas diberi label dan catatan efek deteksi.
@@ -528,7 +536,7 @@ Rilis v2.0 dinyatakan diterima bila **semua** terpenuhi:
 | **R0** | Bekukan kontrak data (`classify.js`, skema §6.1–§6.4) | 0,5 hari | Konstanta + tipe data + daftar nama berkas peta |
 | **R1** | Pipeline data: field baru + `determinan.json` | 1 hari | GeoJSON & JSON baru |
 | **R1b** | **Ekspor QGIS**: 4 layout → `public/peta/*.png`, buat varian WebP, tulis `public/peta/README.md` | 0,5 hari | 4 PNG + 4 WebP + metadata |
-| **R2** | **Sematkan peta di `index.html`**: `<picture>`/`srcset`, segmented control, caption, tombol unduh; peta jelajah opsional | 1 hari | Tab Peta v2 berbasis gambar |
+| **R2** | **Panel Peta Leaflet 5 kelas** + galeri lampiran QGIS: legenda, layer, popup 4 baris, `<details>` caption/unduh | 1 hari | Tab Peta v2 interaktif |
 | **R3** | Panel Info: determinan, regresi, anomali | 1,5 hari | Tab Info v2 |
 | **R4** | KPI, grafik, tabel, unduhan, a11y | 1 hari | Dashboard v2 |
 | **R5** | Uji, build, deploy | 0,5 hari | Rilis |
@@ -549,21 +557,22 @@ Total ± 6 hari kerja.
 | Payload membengkak karena 95 kolom | Lambat di mobile | Determinan dipisah ke JSON lazy |
 | `prepare-data.mjs` berubah dan merusak build | Data tidak tampil | Uji dengan 14 baris + cek jumlah & hash field |
 | Hasil FDR 0 signifikan dianggap "penelitian gagal" | Narasi lemah | Framing eksploratif + rekomendasi desa-level untuk inferensia |
-| **Gambar QGIS tidak sinkron dengan CSV/JSON** (data diperbarui, peta tidak diekspor ulang) | Website menampilkan angka salah — risiko tertinggi pada arsitektur ini | Checklist rilis: cocokkan tanggal ekspor di `public/peta/README.md` dengan mtime `kecamatan.geojson`; hash berkas dicatat; jadikan item wajib di §10 |
+| **Gambar QGIS tidak sinkron dengan CSV/JSON** (data diperbarui, lampiran tidak diekspor ulang) | Peta Home/lampiran menampilkan angka salah | Checklist rilis: cocokkan tanggal ekspor di `public/peta/README.md` dengan mtime `kecamatan.geojson`; hash berkas dicatat; jadikan item wajib di §10 |
 | PNG 300 dpi terlalu berat untuk mobile | LCP lambat | Wajib varian `-1200.webp`, `loading="lazy"`, `width`/`height` eksplisit |
-| Peta statis dianggap "kurang interaktif" oleh penguji | Nilai SIG dipertanyakan | Sediakan tabel + grafik interaktif dan (opsional) peta jelajah; jelaskan alasan metodologis: peta resmi = keluaran QGIS agar konsisten dengan laporan |
+| Peta Leaflet dianggap tidak konsisten dengan laporan QGIS | Kritik metodologi | Break kelas dan ramp berasal dari `src/data/classify.js` yang sama; lampiran QGIS disediakan untuk verifikasi |
 
 ---
 
 ## 13. Traceability: Artefak Analisis → Elemen UI
 
-| Artefak QGIS | Elemen web |
+| Artefak analisis | Elemen web |
 |---|---|
-| `layout_utama_stunting_2024.png` | **`public/peta/peta-stunting-utama.png`** → peta utama `index.html` (FR-01) |
-| `layout_prioritas_stunting_2024.png` | **`public/peta/peta-prioritas-stunting.png`** → peta kuadran (FR-03) |
-| `layout_sanitasi_2024.png` | **`public/peta/peta-sanitasi-penjelas.png`** → peta faktor penjelas (FR-02) |
+| `layout_utama_stunting_2024.png` | **`public/peta/peta-stunting-utama.png`** → peta Home + lampiran (FR-01) |
+| `layout_prioritas_stunting_2024.png` | **`public/peta/peta-prioritas-stunting.png`** → lampiran kuadran (FR-03) |
+| `layout_sanitasi_2024.png` | **`public/peta/peta-sanitasi-penjelas.png`** → lampiran faktor penjelas (FR-02) |
 | Layer "Indeks Kapasitas Layanan 2024" | **`public/peta/peta-kapasitas-layanan.png`** (layout baru, FR-04) |
 | `public/peta/README.md` | Metadata ekspor: tanggal, versi QGIS, layout, SHA-256 (§6.4) |
+| `kecamatan.geojson` | Panel Peta Leaflet 5 kelas (FR-01/FR-02/FR-08) |
 | `determinan_stunting_2024.csv` | `determinan.json` → FR-05 |
 | `kuadran_prioritas_stunting.csv` | `kuadran` di GeoJSON + tabel → FR-03 |
 | `ringkasan_statistik.csv` | KPI & tabel ringkasan → FR-09 |
@@ -575,8 +584,8 @@ Total ± 6 hari kerja.
 ## 14. Definition of Done
 
 1. Semua item §10 tercentang.
-2. Empat berkas peta hasil ekspor QGIS ada di `public/peta/`, beserta `README.md` berisi tanggal ekspor + SHA-256, dan semuanya dirujuk dari `index.html`.
-3. `README.md` proyek diperbarui: menjelaskan stunting sebagai fokus, sanitasi sebagai faktor penjelas, dan bahwa peta berasal dari ekspor QGIS (bukan render browser).
+2. Empat berkas peta hasil ekspor QGIS ada di `public/peta/`, beserta `README.md` berisi tanggal ekspor + SHA-256, dan dirujuk dari `index.html` sebagai lampiran/Home; panel Peta memakai Leaflet.
+3. `README.md` proyek diperbarui: menjelaskan stunting sebagai fokus, sanitasi sebagai faktor penjelas, panel Peta memakai Leaflet interaktif, dan lampiran cetak berasal dari ekspor QGIS.
 4. Tidak ada regresi fungsional pada fitur v1 yang dipertahankan (tema gelap, filter, unduhan, galeri).
 5. Screenshot desktop + mobile dilampirkan pada laporan.
 6. Dokumen ini dan `../PRD.md` (v1) dirujuk silang agar pembaca tahu versi mana yang berlaku.

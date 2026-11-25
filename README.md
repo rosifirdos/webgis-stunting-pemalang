@@ -31,10 +31,11 @@ dependensi tambahan. Perintah yang sama juga menulis
 `public/data/determinan.json` (95 uji determinan, 6 model regresi, 7 baris
 registry anomali), sehingga panel Info tidak memuat angka statistik di HTML.
 
-**Peta tidak dirender browser.** Peta resmi untuk laporan adalah hasil ekspor
-QGIS di `public/peta/`, bukan tangkapan layar Leaflet. Bila data berubah,
-perbarui dua hal: `npm run prepare-data` **dan** ekspor ulang layout QGIS
-(langkah lengkap di `public/peta/README.md`).
+**Peta interaktif dan lampiran cetak memakai sumber yang sama.** Panel Peta
+dirender Leaflet dari `public/data/kecamatan.geojson`; lampiran cetak dan gambar
+peta Home berasal dari ekspor QGIS. Bila data berubah, perbarui dua hal:
+`npm run prepare-data` **dan** ekspor ulang layout QGIS (langkah lengkap di
+`public/peta/README.md`).
 
 Rujukan dokumen: PRD v2 di [`PRD.md`](PRD.md) dan PRD v1 di
 [`../PRD.md`](../PRD.md).
@@ -212,23 +213,21 @@ Ketentuan yang dipegang:
 
 ## Peta
 
-Ada dua lapis peta dengan peran yang tegas:
+Panel **Peta** memakai **peta Leaflet interaktif** (`src/map/*`) yang digambar
+dari `public/data/kecamatan.geojson`: bisa digeser, di-zoom, berganti layer
+stunting/sanitasi, berganti basemap, dan diklik per kecamatan. Klik satu
+poligon menyorot baris tabel, grafik, dan kartu "Kecamatan terpilih". Peta ini
+memakai 5 kelas Quantile dan ramp warna yang sama dengan QGIS.
 
-1. **Peta resmi — gambar ekspor QGIS** (`public/peta/*.png`). Empat layout
-   diekspor dari proyek QGIS 3.44.16
-   (`../output/Pemalang_Stunting_Sanitasi_2024.qgz`) berukuran 3507 × 2480 px:
-   stunting (utama), kuadran prioritas, faktor penjelas sanitasi, dan indeks
-   kapasitas layanan. Inilah peta yang dipakai di laporan dan panel Peta
-   (galeri `<details>` serta gambar utama di Home), karena legenda, anotasi,
-   dan skalanya sama persis dengan layout cetak. **Peta ini tidak dibuat oleh
-   browser.**
-2. **Peta jelajah — Leaflet** (`src/map/*`). Alat bantu opsional untuk
-   menggeser, memperbesar, mengganti basemap, dan mengklik kecamatan; klik satu
-   poligon menyorot baris tabel, grafik, dan kartu "Kecamatan terpilih".
-   Peta ini **bukan** sumber peta laporan dan tidak pernah diklaim sebagai
-   ekspor QGIS.
+Empat layout **ekspor QGIS** (`public/peta/*.png`) tetap disediakan sebagai
+lampiran cetak dan gambar peta di Home. Semuanya diekspor dari proyek QGIS
+3.44.16 (`../output/Pemalang_Stunting_Sanitasi_2024.qgz`) berukuran
+3507 × 2480 px: stunting (utama), kuadran prioritas, faktor penjelas sanitasi,
+dan indeks kapasitas layanan. Legenda, anotasi, dan skalanya sama persis dengan
+layout laporan. Lampiran ini **tidak dibuat oleh browser** dan tidak
+menggantikan peta interaktif.
 
-Warna poligon peta jelajah mengikuti ramp proyek QGIS, sehingga kelas warnanya
+Warna poligon peta Leaflet mengikuti ramp proyek QGIS, sehingga kelas warnanya
 sama dengan peta cetak; bedanya hanya ada di grafik, dan itu dijelaskan di
 bagian [Catatan metodologi](#catatan-metodologi).
 
