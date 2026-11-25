@@ -28,14 +28,14 @@ export function gambarKpi(rows) {
   const menengah = rows.filter((r) => r.prioritas === "2 Prioritas Menengah");
 
   const hero = document.getElementById("hero-stunting");
-  if (hero) hero.textContent = `${angka(s.rerataStunting, 1)}%`;
+  if (hero) hero.textContent = angka(k["1 Prioritas Utama"]);
 
   const heroCatatan = document.getElementById("hero-catatan");
   if (heroCatatan) {
     heroCatatan.textContent =
-      `Bila dibobot jumlah balita yang diukur, angkanya menjadi ` +
-      `${angka(s.stuntingBerbobot, 1)}% — ${angka(s.totalKasus)} kasus dari ` +
-      `${angka(s.totalBalita)} balita yang diukur di 14 kecamatan.`;
+      `Beban kabupaten: rerata prevalensi ${angka(s.rerataStunting, 1)}%, ` +
+      `berbobot ${angka(s.stuntingBerbobot, 1)}% — ${angka(s.totalKasus)} kasus ` +
+      `dari ${angka(s.totalBalita)} balita yang diukur di 14 kecamatan.`;
   }
 
   const set = (id, teks) => {
