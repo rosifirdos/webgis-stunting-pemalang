@@ -212,26 +212,8 @@
           </div>
         </div>
 
-        <!-- Peta utama dari ekspor QGIS. Sengaja hanya satu <img> ringkas;
-             galeri lengkap dan pemilih peta ada di tab Peta. -->
-        <figure class="card overflow-hidden p-0">
-          <picture>
-            <source srcset="peta/peta-stunting-utama-1200.webp 1200w" sizes="(max-width:1024px) 100vw, 70vw"
-              type="image/webp" />
-            <img src="peta/peta-stunting-utama.png" srcset="peta/peta-stunting-utama.png 3507w"
-              width="3507" height="2480" sizes="(max-width:1024px) 100vw, 70vw" loading="lazy" decoding="async"
-              class="block h-auto w-full bg-[var(--color-canvas)]"
-              alt="Peta prevalensi stunting 2024 per kecamatan Kabupaten Pemalang, 5 kelas kuantil" />
-          </picture>
-          <figcaption class="flex flex-wrap items-baseline gap-x-3 gap-y-1 p-4 sm:p-5">
-            <p class="text-sm text-[var(--color-ink-2)]">
-              Peta prevalensi stunting dari ekspor QGIS 3.44.16.
-            </p>
-            <a href="#peta"
-              class="text-sm font-medium text-[var(--color-link)] underline-offset-2 hover:underline">Lihat semua
-              peta →</a>
-          </figcaption>
-        </figure>
+        <!-- Peta cetak hasil ekspor QGIS tidak disematkan di halaman; berkas
+              PNG tetap tersedia di public/peta/ untuk kebutuhan cetak. -->
 
         <!-- Satu baris filter, di atas semua yang dicakupinya -->
         <div class="card flex flex-wrap items-center gap-x-5 gap-y-3 p-4" role="group" aria-label="Filter data">
@@ -410,19 +392,18 @@
            ================================================================ -->
     <section id="panel-peta" role="tabpanel" aria-labelledby="tab-peta" data-panel="peta" hidden>
       <!--
-        Dua lapis peta:
-        1. Kanvas Leaflet interaktif (src/map/*): pan, zoom, empat layer
-           (stunting, faktor penjelas sanitasi, kuadran prioritas, indeks
-           kapasitas layanan), basemap, dan klik kecamatan.
-        2. Peta cetak hasil ekspor QGIS (public/peta/*.png) di dalam <details>,
-           jadi legenda dan anotasinya sama persis dengan layout QGIS dan tetap
-           tersedia sebagai gambar 3507 x 2480 px.
+        Peta utama: kanvas Leaflet interaktif (src/map/*) dengan pan, zoom,
+        empat layer (stunting, faktor penjelas sanitasi, kuadran prioritas,
+        indeks kapasitas layanan), basemap, dan klik kecamatan.
+        Peta cetak hasil ekspor QGIS tidak disematkan di halaman; berkasnya
+        tetap ada di public/peta/ untuk kebutuhan cetak.
       -->
       <div class="mx-auto flex w-full max-w-[1400px] flex-col gap-4 px-4 py-6 sm:px-6">
         <p
           class="rounded-lg border border-[var(--color-hairline)] bg-[var(--color-canvas)] px-4 py-2.5 text-[13px] leading-relaxed text-[var(--color-ink-2)]">
           Analisis bersifat eksploratif: n = 14 kecamatan, tidak ada variabel signifikan setelah koreksi FDR.
         </p>
+        <p id="peta-pengumuman" class="sr-only" aria-live="polite"></p>
 
         <div class="grid gap-4 lg:grid-cols-[300px_1fr]">
           <!-- SIDEBAR -->
@@ -556,83 +537,6 @@
           </div>
         </div>
 
-        <!-- Peta cetak: layout QGIS hasil ekspor, disimpan sebagai gambar. -->
-        <details class="card p-0">
-          <summary
-            class="cursor-pointer list-none p-4 text-sm font-semibold marker:hidden [&::-webkit-details-marker]:hidden">
-            <span class="text-[var(--color-link)]">Peta cetak (layout QGIS)</span> — 4 peta siap unduh
-          </summary>
-          <div class="border-t border-[var(--color-hairline)] p-4">
-            <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-              <h2 class="text-lg font-semibold">Layout QGIS untuk cetak</h2>
-              <p id="peta-aktif-status" class="text-[13px] text-[var(--color-ink-2)]">Peta aktif: Stunting (utama) ·
-                diekspor 25 November 2026</p>
-            </div>
-
-            <div class="mt-3 grid gap-4 lg:grid-cols-[280px_minmax(0,1fr)]">
-                <!-- PEMILIH -->
-                <aside class="card p-4 lg:self-start">
-                  <h3 class="text-xs font-semibold uppercase tracking-wide text-[var(--color-ink-3)]">
-                    Pilih peta
-                  </h3>
-                  <div id="pemilih-peta" class="mt-3 flex flex-col gap-2" role="radiogroup" aria-label="Pilih peta">
-                    <button type="button" role="radio" aria-checked="true" data-peta="stunting" class="peta-opsi">
-                      <span class="block text-sm font-medium">Stunting (utama)</span>
-                      <span class="block text-xs text-[var(--color-ink-3)]">5 kelas kuantil</span>
-                    </button>
-                    <button type="button" role="radio" aria-checked="false" data-peta="prioritas" class="peta-opsi">
-                      <span class="block text-sm font-medium">Kuadran prioritas</span>
-                      <span id="peta-prioritas-jumlah" class="block text-xs text-[var(--color-ink-3)]">4 kategori median split</span>
-                    </button>
-                    <button type="button" role="radio" aria-checked="false" data-peta="sanitasi" class="peta-opsi">
-                      <span class="block text-sm font-medium">Faktor penjelas: sanitasi layak</span>
-                      <span class="block text-xs text-[var(--color-ink-3)]">Cakupan sanitasi 2024</span>
-                    </button>
-                    <button type="button" role="radio" aria-checked="false" data-peta="kapasitas" class="peta-opsi">
-                      <span class="block text-sm font-medium">Kapasitas layanan</span>
-                      <span class="block text-xs text-[var(--color-ink-3)]">Indeks, bukan indeks risiko</span>
-                    </button>
-                  </div>
-                  <p class="mt-3 text-xs leading-relaxed text-[var(--color-ink-3)]">
-                    Legenda dan angka tercetak di dalam gambar. Nilai per kecamatan ada di tabel tab Home.
-                  </p>
-                </aside>
-
-                <!-- GALERI -->
-                <figure class="card overflow-hidden p-0">
-                  <picture>
-                    <source id="peta-sumber" type="image/webp" sizes="(max-width:1024px) 100vw, 70vw"
-                      srcset="peta/peta-stunting-utama-1200.webp 1200w" />
-                    <img id="peta-gambar" width="3507" height="2480" sizes="(max-width:1024px) 100vw, 70vw"
-                      decoding="async" loading="lazy"
-                      src="peta/peta-stunting-utama.png" srcset="peta/peta-stunting-utama.png 3507w"
-                      class="block h-auto w-full bg-[var(--color-canvas)]"
-                      alt="Peta prevalensi stunting 2024 per kecamatan Kabupaten Pemalang, 5 kelas kuantil" />
-                  </picture>
-                  <p id="peta-galat" class="hidden p-5 text-sm text-[var(--color-ink-2)]" role="alert"></p>
-
-                  <figcaption class="flex flex-col gap-2 p-4 sm:p-5">
-                    <h3 id="peta-judul" class="text-[15px] font-semibold">Peta Prevalensi Stunting Kabupaten Pemalang 2024
-                    </h3>
-                    <p id="peta-keterangan" class="text-sm leading-relaxed text-[var(--color-ink-2)]">Prevalensi balita
-                      stunting per kecamatan, 5 kelas kuantil dengan batas 5,29% / 7,40% / 9,13% / 12,18%.</p>
-                    <p id="peta-keterangan-tambahan" class="text-sm leading-relaxed text-[var(--color-ink-2)]" hidden></p>
-                    <p class="mt-1 text-xs leading-relaxed text-[var(--color-ink-3)]">
-                      Diekspor dari QGIS 3.44.16 · Sumber: Profil Kesehatan Kabupaten Pemalang 2024
-                    </p>
-                    <p class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
-                      <a id="peta-penuh" href="peta/peta-stunting-utama.png" target="_blank" rel="noopener"
-                        class="font-medium text-[var(--color-link)] underline-offset-2 hover:underline">Buka ukuran
-                        penuh (PNG)</a>
-                      <span class="text-[var(--color-ink-3)]">3507 × 2480 px · keterangan: gambar statis hasil QGIS</span>
-                    </p>
-                  </figcaption>
-                </figure>
-            </div>
-
-            <p id="peta-pengumuman" class="sr-only" aria-live="polite"></p>
-          </div>
-        </details>
       </div>
     </section>
 

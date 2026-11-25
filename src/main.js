@@ -21,7 +21,6 @@ import {
 } from "./ui/filters.js";
 import { jalankanUnduh } from "./ui/export.js";
 import { initFoto } from "./ui/galeri.js";
-import { initGaleriPeta } from "./ui/galeri-peta.js";
 import { initScrollAnimation } from "./ui/scroll.js";
 import { initInfo } from "./ui/info.js";
 
@@ -124,11 +123,6 @@ async function mulai() {
 
     const semua = rows;
     let rowsTampil = terapkanFilter(semua);
-
-    /* --- peta cetak ---------------------------------------------------------
-       Galeri layout QGIS di dalam <details> tetap dilayani modul terpisah;
-       peta utama di tab ini adalah kanvas Leaflet di bawah. */
-    initGaleriPeta({ rows: semua });
 
     /* --- tabel alternatif untuk kedua grafik ------------------------------ */
     const isiTabel = {
