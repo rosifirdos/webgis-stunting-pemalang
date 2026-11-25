@@ -43,21 +43,25 @@
      ramp: 4.78:1 di kanvas, 4.91:1 di permukaan, masih sewarna dengan ramp. */
   --color-link: #2a6fc4;
 
-  /* --- choropleth: prevalensi stunting (oranye, rendah -> tinggi) --- */
-  --color-stunting-1: #f17a56;
-  --color-stunting-2: #da562a;
-  --color-stunting-3: #b14420;
+  /* --- choropleth: prevalensi stunting (oranye, rendah -> tinggi) --------
+     Lima langkah dipilih dengan mengukur kontras terhadap permukaan terang:
+     2,24 / 2,82 / 3,89 / 5,58 / 8,09 - ujung terang tetap di atas ambang
+     2:1 yang disyaratkan pemakaian ordinal di permukaan. */
+  --color-stunting-1: #f39268;
+  --color-stunting-2: #ec7649;
+  --color-stunting-3: #d7562a;
+  --color-stunting-4: #b0431e;
+  --color-stunting-5: #893214;
 
   /* --- choropleth: sanitasi layak (biru, rendah -> tinggi) --------------
-     Langkah L* dipilih agar jarak antar kelas sama besar (22 L* per langkah),
-     bukan diwarisi dari ramp lama yang langkahnya timpang (17 vs 22). Biru
-     pekat dipakai untuk capaian tinggi; tema gelap membalik arahnya.
-     Syarat yang dipenuhi (dihitung, bukan dikira): hue tunggal 0,5 deg,
-     L* monoton, kontras ujung terang 9,49:1 dan ujung gelap 2,04:1 terhadap
-     permukaan - keduanya di atas ambang 2:1. dE ujung Rendah<->Baik = 44,4. */
-  --color-sanitasi-1: #89b4ff;
-  --color-sanitasi-2: #007bda;
-  --color-sanitasi-3: #02457e;
+     Lima langkah satu hue, L* monoton. Kontras ujung terang terhadap
+     permukaan 2,03:1 dan ujung gelap 14,21:1 - keduanya lolos ambang 2:1.
+     Tema gelap membalik arah (gelap->terang), bukan memakai nilai yang sama. */
+  --color-sanitasi-1: #8fb5f4;
+  --color-sanitasi-2: #4a8fe6;
+  --color-sanitasi-3: #0f6fc4;
+  --color-sanitasi-4: #02457e;
+  --color-sanitasi-5: #012a4d;
 
   /* --- status (tetap, tidak di-theme) --- */
   --color-good: #0ca30c;
@@ -82,13 +86,17 @@
        Judul galat karena itu memakai langkah yang lebih terang khusus gelap. */
     --color-critical: #ea6a6a;
 
-    --color-stunting-1: #a63c0c;
-    --color-stunting-2: #d45624;
-    --color-stunting-3: #f28058;
+    --color-stunting-1: #8a3413;
+    --color-stunting-2: #a63c0c;
+    --color-stunting-3: #d45624;
+    --color-stunting-4: #f28058;
+    --color-stunting-5: #f8b394;
 
-    --color-sanitasi-1: #01569b;
-    --color-sanitasi-2: #038df8;
-    --color-sanitasi-3: #acc7ff;
+    --color-sanitasi-1: #01538f;
+    --color-sanitasi-2: #0274c9;
+    --color-sanitasi-3: #038df8;
+    --color-sanitasi-4: #7ab8fd;
+    --color-sanitasi-5: #cfdfff;
   }
 }
 :root[data-theme="dark"] {
@@ -102,13 +110,17 @@
   --color-link: #7ab0f9;
   --color-critical: #ea6a6a;
 
-  --color-stunting-1: #a63c0c;
-  --color-stunting-2: #d45624;
-  --color-stunting-3: #f28058;
+  --color-stunting-1: #8a3413;
+  --color-stunting-2: #a63c0c;
+  --color-stunting-3: #d45624;
+  --color-stunting-4: #f28058;
+  --color-stunting-5: #f8b394;
 
-  --color-sanitasi-1: #01569b;
-  --color-sanitasi-2: #038df8;
-  --color-sanitasi-3: #acc7ff;
+  --color-sanitasi-1: #01538f;
+  --color-sanitasi-2: #0274c9;
+  --color-sanitasi-3: #038df8;
+  --color-sanitasi-4: #7ab8fd;
+  --color-sanitasi-5: #cfdfff;
 }
 
 /* ==========================================================================

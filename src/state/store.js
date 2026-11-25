@@ -39,7 +39,7 @@ export function terapkanFilter(rows) {
   const { kelas, cari, urut, arah } = state;
   let hasil = rows;
 
-  if (kelas) hasil = hasil.filter((r) => r.kelas === kelas);
+  if (kelas) hasil = hasil.filter((r) => Number(r.kelas) === Number(kelas));
 
   if (cari) {
     const q = cari.toLowerCase();

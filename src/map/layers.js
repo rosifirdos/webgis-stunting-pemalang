@@ -1,5 +1,23 @@
 import { tokenRamp } from "../tokens.js";
 import { getState } from "../state/store.js";
+import {
+  kelasStunting,
+  kelasSanitasi,
+  KELAS_STUNTING,
+  KELAS_SANITASI,
+} from "../data/classify.js";
+
+/**
+ * Legenda memakai urutan tinggi->rendah (nilai besar di atas), sedangkan
+ * konstanta kelas disimpan rendah->tinggi. `warnaIndeks` menunjuk langkah ramp
+ * yang sama dengan angka kelas (1..5 -> indeks 0..4).
+ */
+const legenda = (daftar) =>
+  [...daftar].reverse().map((k) => ({
+    label: k.label,
+    ket: k.keterangan,
+    warnaIndeks: k.tingkat - 1,
+  }));
 
 export const PANEL = {
   stunting: {
@@ -8,14 +26,9 @@ export const PANEL = {
     satuan: "%",
     field: "stunting_pct",
     ramp: "stunting",
-    // Kelas dari atas ke bawah untuk legenda (nilai tinggi di atas)
-    kelas: [
-      { label: "Tinggi", ket: "≥ 12,51%", warnaIndeks: 2 },
-      { label: "Sedang", ket: "8,32 – 12,51%", warnaIndeks: 1 },
-      { label: "Rendah", ket: "< 8,32%", warnaIndeks: 0 },
-    ],
+    kelas: legenda(KELAS_STUNTING),
     catatan:
-      "Kelas memakai selang seragam dari nilai minimum ke maksimum, sama dengan klasifikasi pada peta laporan.",
+      "Lima kelas kuantil; batas sama dengan peta ekspor QGIS. Kelas tinggi = prevalensi tinggi.",
   },
   sanitasi: {
     nama: "sanitasi",
@@ -23,13 +36,9 @@ export const PANEL = {
     satuan: "%",
     field: "sanitasi_pct",
     ramp: "sanitasi",
-    kelas: [
-      { label: "Baik", ket: "66,7 – 100%", warnaIndeks: 2 },
-      { label: "Sedang", ket: "33,3 – 66,7%", warnaIndeks: 1 },
-      { label: "Rendah", ket: "0 – 33,3%", warnaIndeks: 0 },
-    ],
+    kelas: legenda(KELAS_SANITASI),
     catatan:
-      "Skala dipatok 0–100% agar nilai di atas 100% (Warungpring) jatuh di luar kelas teratas dan terlihat sebagai anomali, bukan tersembunyi di dalam skala.",
+      "Lima kelas kuantil. Nilai di atas 100% (Warungpring 111,77%) tetap di kelas 5 dan ditandai di luar skala, tidak dikoreksi.",
   },
 };
 
@@ -39,22 +48,14 @@ export function panelAktif() {
 
 /**
  * Warna isi polygon untuk sebuah kecamatan pada layer aktif.
- * Nilai di atas 100% (sanitasi) sengaja tetap memakai langkah teratas, lalu
- * ditandai pada popup/legenda.
+ * Nilai di atas 100% (sanitasi) tetap memakai langkah teratas, lalu ditandai
+ * pada popup/legenda.
  */
 export function warnaUntuk(row, panel) {
   const ramp = tokenRamp(panel.ramp);
   const v = row[panel.field];
-
-  if (panel.nama === "stunting") {
-    if (v >= 12.5067) return ramp[2];
-    if (v >= 8.3233) return ramp[1];
-    return ramp[0];
-  }
-
-  if (v >= 66.67) return ramp[2];
-  if (v >= 33.33) return ramp[1];
-  return ramp[0];
+  const tingkat = panel.nama === "stunting" ? kelasStunting(v) : kelasSanitasi(v);
+  return ramp[tingkat - 1];
 }
 
 /** Nilai yang ditulis di tooltip/popup, dengan penanda bila di luar skala. */

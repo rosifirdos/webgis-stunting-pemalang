@@ -1,5 +1,6 @@
 import { getState, setState } from "../state/store.js";
 import { angka } from "../data/stats.js";
+import { labelSingkat } from "../data/classify.js";
 import { isGelap } from "../tokens.js";
 import { panelAktif } from "./layers.js";
 import { pilih as pilihPeta, muatSemua } from "./choropleth.js";
@@ -100,7 +101,7 @@ function perbaruiKartuTerpilih(nama) {
     `${angka(row.sanitasi_pct, 2)}%${row.sanitasi_pct > 100 ? " *" : ""}`
   );
   isi("terpilih-kasus", `${angka(row.stunting_jml)} dari ${angka(row.balita_ukur)}`);
-  isi("terpilih-kelas", row.kelas);
+  isi("terpilih-kelas", `Kelas ${row.kelas}/5 — ${labelSingkat(row.kelas)}`);
 
   const tautan = document.getElementById("terpilih-detail");
   if (tautan) tautan.setAttribute("aria-label", `Lihat ${row.kecamatan} di tabel data`);

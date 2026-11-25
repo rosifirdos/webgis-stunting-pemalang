@@ -1,6 +1,7 @@
 import { Chart } from "chart.js";
 import { token } from "../tokens.js";
 import { angka } from "../data/stats.js";
+import { labelSingkat } from "../data/classify.js";
 import { palet, gayaTip, pluginLabelPoin } from "./base.js";
 
 /**
@@ -216,7 +217,7 @@ export function gambarScatter(rows, { onPilih } = {}) {
                 `Stunting ${angka(r.stunting_pct, 2)}%`,
                 r.sanitasi_pct > 100
                   ? "Nilai melebihi 100% — capaian program, bukan proporsi"
-                  : `Kelas ${r.kelas} · ${angka(r.stunting_jml)} kasus`,
+                  : `Kelas ${r.kelas}/5 — ${labelSingkat(r.kelas)} · ${angka(r.stunting_jml)} kasus`,
               ];
             },
           },

@@ -2,6 +2,7 @@ import L from "leaflet";
 import { token } from "../tokens.js";
 import { panelAktif, warnaUntuk, nilaiTeks } from "./layers.js";
 import { angka } from "../data/stats.js";
+import { labelSingkat } from "../data/classify.js";
 
 /**
  * Layer choropleth.
@@ -80,7 +81,7 @@ function htmlPopup(feature) {
         ${barisDl("Sanitasi layak", `${angka(p.sanitasi_pct, 2)}%${luar ? " *" : ""}`)}
         ${barisDl("Kasus stunting", `${angka(p.stunting_jml)} balita`)}
         ${barisDl("Balita diukur", angka(p.balita_ukur))}
-        ${barisDl("Kelas", p.kelas)}
+        ${barisDl("Kelas", `Kelas ${p.kelas}/5 — ${labelSingkat(p.kelas)}`)}
       </dl>
       ${
         luar

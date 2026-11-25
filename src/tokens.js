@@ -10,9 +10,9 @@ export function token(nama) {
     .trim();
 }
 
-/** Tiga langkah ramp choropleth, mis. tokenRamp("stunting"). */
+/** Lima langkah ramp choropleth, mis. tokenRamp("stunting"). */
 export function tokenRamp(nama) {
-  return [1, 2, 3].map((i) => token(`--color-${nama}-${i}`));
+  return [1, 2, 3, 4, 5].map((i) => token(`--color-${nama}-${i}`));
 }
 
 /* --------------------------------------------------------------------------

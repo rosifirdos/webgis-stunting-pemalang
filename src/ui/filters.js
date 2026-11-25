@@ -1,5 +1,6 @@
 import { getState, setState } from "../state/store.js";
 import { angka } from "../data/stats.js";
+import { KELAS_STUNTING } from "../data/classify.js";
 
 /**
  * Baris filter di atas dashboard.
@@ -13,6 +14,14 @@ export function initFilter(total) {
   const kelas = document.getElementById("filter-kelas");
   const cari = document.getElementById("cari-kecamatan");
   const reset = document.getElementById("reset-filter");
+
+  // Label opsi kelas dibangun dari konstanta klasifikasi, bukan diketik ulang
+  // di HTML, supaya break di UI tidak bisa berbeda dari peta/tabel.
+  const opsi = kelas?.querySelectorAll('option[value]:not([value=""])') ?? [];
+  opsi.forEach((o, i) => {
+    const k = KELAS_STUNTING[i];
+    if (k) o.textContent = `${k.label} (${k.keterangan})`;
+  });
 
   kelas?.addEventListener("change", () => setState({ kelas: kelas.value }));
   cari?.addEventListener("input", () => setState({ cari: cari.value.trim() }));
@@ -51,7 +60,10 @@ export function perbaruiRingkasanFilter(total) {
   }
 
   const bagian = [];
-  if (kelas) bagian.push(`kelas ${kelas}`);
+  if (kelas) {
+    const label = KELAS_STUNTING[Number(kelas) - 1]?.label ?? `kelas ${kelas}`;
+    bagian.push(label);
+  }
   if (cari) bagian.push(`nama mengandung "${cari}"`);
 
   el.textContent = n === 0 ? "Tidak ada kecamatan yang cocok" : `${angka(n)} dari ${angka(total)} kecamatan — ${bagian.join(", ")}`;

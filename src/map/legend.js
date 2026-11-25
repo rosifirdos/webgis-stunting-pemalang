@@ -61,12 +61,10 @@ export function gambarLegenda() {
 
   if (petaJudul) petaJudul.textContent = panel.judul;
   if (petaBar) {
-    // Gradien rendah->tinggi. Arah dibalik untuk stunting karena "tinggi"
-    // berarti buruk, sementara pada sanitasi "tinggi" berarti baik - warna
-    // tetap mengikuti besaran, label sumbu yang menyesuaikan.
-    const a = `var(--color-${panel.ramp}-1)`;
-    const b = `var(--color-${panel.ramp}-2)`;
-    const c = `var(--color-${panel.ramp}-3)`;
-    petaBar.style.background = `linear-gradient(to right, ${a}, ${b}, ${c})`;
+    // Gradien rendah->tinggi, lima langkah sama dengan kelas peta.
+    const langkah = [1, 2, 3, 4, 5].map(
+      (i) => `var(--color-${panel.ramp}-${i})`
+    );
+    petaBar.style.background = `linear-gradient(to right, ${langkah.join(", ")})`;
   }
 }

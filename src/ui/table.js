@@ -1,5 +1,6 @@
 import { getState, setState } from "../state/store.js";
 import { angka } from "../data/stats.js";
+import { KELAS_STUNTING } from "../data/classify.js";
 
 /**
  * Tabel data per kecamatan.
@@ -19,7 +20,7 @@ const KOLOM = [
   { kunci: "sanitasi_pct", label: "Sanitasi layak", jenis: "persen" },
   { kunci: "stunting_jml", label: "Kasus", jenis: "angka" },
   { kunci: "balita_ukur", label: "Balita diukur", jenis: "angka" },
-  { kunci: "kelas", label: "Kelas", jenis: "teks" },
+  { kunci: "kelas", label: "Kelas", jenis: "angka" },
 ];
 
 const sel = (teks, kelas = "") =>
@@ -44,17 +45,15 @@ export function tandaiTerpilih(nama) {
 }
 
 function selKelas(r) {
-  const titik =
-    r.kelas === "Tinggi"
-      ? "var(--color-stunting-3)"
-      : r.kelas === "Sedang"
-      ? "var(--color-stunting-2)"
-      : "var(--color-stunting-1)";
+  // r.kelas adalah angka 1..5; indeks ramp memakai angka yang sama.
+  const tingkat = Math.min(Math.max(Number(r.kelas) || 1, 1), 5);
+  const titik = `var(--color-stunting-${tingkat})`;
+  const label = KELAS_STUNTING[tingkat - 1]?.label ?? `Kelas ${tingkat}`;
   // Kelas ditulis sebagai teks, dengan titik warna sebagai penguat - bukan
   // warna saja.
   return `<span class="inline-flex items-center gap-1.5">
       <span class="h-2 w-2 shrink-0 rounded-full" style="background:${titik}" aria-hidden="true"></span>
-      ${r.kelas}
+      ${label}
     </span>`;
 }
 

@@ -2,6 +2,7 @@ import { Chart } from "chart.js";
 import { token } from "../tokens.js";
 import { panelAktif } from "../map/layers.js";
 import { angka } from "../data/stats.js";
+import { KELAS_STUNTING, labelSingkat } from "../data/classify.js";
 import { palet, gayaTip, pluginLabelBatang } from "./base.js";
 
 /**
@@ -31,9 +32,9 @@ function pasangTinggi(n) {
 }
 
 function warnaBatang(row) {
-  // Warna dari kelas stunting wilayah itu sendiri (Rendah/Sedang/Tinggi).
-  const i = row.kelas === "Tinggi" ? 3 : row.kelas === "Sedang" ? 2 : 1;
-  return token(`--color-stunting-${i}`);
+  // Kelas stunting 1..5 adalah indeks ramp yang sama (--color-stunting-1..5).
+  const tingkat = Math.min(Math.max(Number(row.kelas) || 1, 1), 5);
+  return token(`--color-stunting-${tingkat}`);
 }
 
 export function gambarBar(rows, { onPilih } = {}) {
@@ -115,7 +116,7 @@ export function gambarBar(rows, { onPilih } = {}) {
               return [
                 `${angka(r.stunting_pct, 2)}% balita stunting`,
                 `${angka(r.stunting_jml)} dari ${angka(r.balita_ukur)} balita diukur`,
-                `Kelas ${r.kelas} · sanitasi ${angka(r.sanitasi_pct, 1)}%`,
+                `Kelas ${r.kelas}/5 — ${labelSingkat(r.kelas)} · sanitasi ${angka(r.sanitasi_pct, 1)}%`,
               ];
             },
           },
@@ -153,7 +154,9 @@ export function tabelBar(rows) {
               <td class="tnum py-1.5 pr-3 text-[var(--color-ink-3)]">${i + 1}</td>
               <td class="py-1.5 pr-3">${r.kecamatan}</td>
               <td class="tnum py-1.5 pr-3 text-right">${angka(r.stunting_pct, 2)}%</td>
-              <td class="py-1.5 pr-3 text-right text-[var(--color-ink-2)]">${r.kelas}</td>
+              <td class="py-1.5 pr-3 text-right text-[var(--color-ink-2)]">${
+                KELAS_STUNTING[r.kelas - 1]?.label ?? `Kelas ${r.kelas}`
+              }</td>
             </tr>`
             )
             .join("")}
