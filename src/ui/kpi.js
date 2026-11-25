@@ -7,9 +7,10 @@ import { ringkas, kuadranRingkas, angka } from "../data/stats.js";
  * ditelusuri ke data mentah. Tidak ada angka yang ditulis tangan di HTML -
  * semuanya dihitung dari 14 baris yang sama yang menggambar peta.
  *
- * Empat kartu di bawah hero menjawab empat pertanyaan berbeda:
- * rerata kabupaten, di mana prioritas utama, di mana sanitasi tidak lagi
- * menjelaskan stunting, dan seberapa lemah hubungan keduanya secara statistik.
+ * Tiga kartu di bawah hero menjawab tiga pertanyaan berbeda: rerata
+ * kabupaten, di mana prioritas utama, dan di mana sanitasi tidak lagi
+ * menjelaskan stunting. Angka hubungan (r, p, n) tetap tersedia di kotak
+ * korelasi di bawah diagram sebar, bukan di kartu tersendiri.
  */
 
 /** Kekuatan hubungan tanpa istilah sebab-akibat. */
@@ -65,19 +66,6 @@ export function gambarKpi(rows) {
   set(
     "kpi-determinan-nama",
     `${daftarNama(determinanLain)} — sanitasi baik, stunting tetap tinggi`
-  );
-
-  // 4. Hubungan sanitasi–stunting — eksplisit lemah dan tidak signifikan.
-  const arah = s.r < 0 ? "negatif" : "positif";
-  set(
-    "kpi-hubungan",
-    `r = ${angka(s.r, 2)} · p = ${angka(s.p, 3)} · n = ${angka(s.n)}`
-  );
-  set(
-    "kpi-hubungan-catatan",
-    `${kekuatan(s.r)}, ${s.p < 0.05 ? "signifikan" : "tidak signifikan"} ` +
-      `(n = ${angka(s.n)}) · arah ${arah} · sanitasi menjelaskan ` +
-      `${angka(s.r2 * 100, 0)}% keragaman stunting`
   );
 
   // Kotak korelasi di bawah scatter memakai angka yang sama.
